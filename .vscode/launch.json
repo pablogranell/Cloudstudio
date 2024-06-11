@@ -4,27 +4,16 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
+    
     {
-      "name": "Launch Chrome against localhost",
-      "request": "launch",
-      "type": "chrome",
-      "url": "http://localhost:4000",
-      "webRoot": "${workspaceFolder}/nerfstudio/viewer/app"
-    },
-    {
-      "name": "Python: Attach using Process ID",
-      "type": "python",
-      "request": "attach",
-      "processId": "${command:pickProcess}",
-      "justMyCode": true
-    },
-    {
-      "name": "Python: Current File",
+      "name": "Python: CMD ns-train",
       "type": "python",
       "request": "launch",
-      "program": "${file}",
+      "program": "ns-train",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "python": "${config:python.pythonPath}"
     },
     {
       "name": "Python: train",
