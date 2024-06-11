@@ -68,6 +68,7 @@ class RunViewer:
         num_rays_per_chunk = config.viewer.num_rays_per_chunk
         assert self.viewer.num_rays_per_chunk == -1
         config.vis = self.vis
+        CONSOLE.log("Run_viewer (pre-asviewerconfig______________________________________________________)")
         config.viewer = self.viewer.as_viewer_config()
         config.viewer.num_rays_per_chunk = num_rays_per_chunk
 
@@ -91,6 +92,7 @@ def _start_viewer(config: TrainerConfig, pipeline: Pipeline, step: int):
     viewer_log_path = base_dir / config.viewer.relative_log_filename
     banner_messages = None
     viewer_state = None
+    CONSOLE.log("Run_viewer (pre-comprobarlegacy______________________________________________________)")
     viewer_callback_lock = Lock()
     if config.vis == "viewer_legacy":
         viewer_state = ViewerLegacyState(
