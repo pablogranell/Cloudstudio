@@ -10,7 +10,7 @@ viser_server = ViserServer()
 viewer_control = ViewerControl()
 while True :
     time.sleep(0.01)
-    if viewer_control.viser_server.get_clients() == 0:
+    if ViserServer.get_clients() == 0:
         time.sleep(0.01)
         print("No clients connected.")
     else:
