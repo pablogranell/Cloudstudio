@@ -1,11 +1,10 @@
 import time
 
-import viser
 from nerfstudio.viewer.viewer_elements import ViewerControl
-import nerfstudio.viewer as viewer
+import nerfstudio.viewer.viewer as viewer
 
-main = viewer.Viewer()
-viewer_server = viewer.ViewerServer(main)
+mainViewer = viewer.Viewer()
+viewer_server = viewer.ViewerServer(mainViewer)
 viewer_control = ViewerControl(viewer_server)
 while True :
     time.sleep(0.01)
