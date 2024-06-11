@@ -9,8 +9,12 @@ from nerfstudio.viewer.viewer_elements import ViewerControl
 viewer_control = ViewerControl()
 while True :
     time.sleep(0.01)
-    cameraPosition = viewer_control.get_camera(100, 100)
-    if cameraPosition is not None:
-        print(f"Camera Position: {cameraPosition}")
+    if viewer_control.viser_server.get_clients() == 0:
+        time.sleep(0.01)
+        print("No clients connected.")
     else:
-        print("Viewer not connected.")
+        cameraPosition = viewer_control.get_camera(100, 100)
+        if cameraPosition is not None:
+            print(f"Camera Position: {cameraPosition}")
+        else:
+            print("Viewer not connected.")
