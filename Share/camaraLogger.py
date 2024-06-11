@@ -1,5 +1,5 @@
 from os import wait
-from viewer_elements import ViewerControl
+from Cloudstudio.nerfstudio.viewer.viewer_elements import ViewerControl
 
 
 viewer_control = ViewerControl()._setup()
