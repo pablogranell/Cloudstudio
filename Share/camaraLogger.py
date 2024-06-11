@@ -1,8 +1,8 @@
 from os import wait
-from viewer_elements import ViewerElements
+from viewer_elements import ViewerControl
 
 
-viewer_control = ViewerElements.ViewerControl._setup()
+viewer_control = ViewerControl()._setup()
 while True :
     wait(1)
     cameraPosition = viewer_control.get_camera(100, 100)
