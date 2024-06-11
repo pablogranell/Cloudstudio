@@ -4,8 +4,9 @@ import time
 #from nerfstudio import viewer
 #from nerfstudio.viewer import viewer_elements
 from nerfstudio.viewer.viewer_elements import ViewerControl
+from viser import ViserServer
 
-
+viser_server = ViserServer()
 viewer_control = ViewerControl()
 while True :
     time.sleep(0.01)
