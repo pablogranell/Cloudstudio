@@ -18,7 +18,7 @@ Starts viewer in eval mode.
 """
 
 from __future__ import annotations
-import subprocess
+
 import time
 from dataclasses import dataclass, field, fields
 from pathlib import Path
@@ -32,7 +32,6 @@ from nerfstudio.engine.trainer import TrainerConfig
 from nerfstudio.pipelines.base_pipeline import Pipeline
 from nerfstudio.utils import writer
 from nerfstudio.utils.eval_utils import eval_setup
-from nerfstudio.utils.rich_utils import CONSOLE
 from nerfstudio.viewer.viewer import Viewer as ViewerState
 from nerfstudio.viewer_legacy.server.viewer_state import ViewerLegacyState
 
@@ -126,8 +125,6 @@ def _start_viewer(config: TrainerConfig, pipeline: Pipeline, step: int):
     if isinstance(viewer_state, ViewerLegacyState):
         viewer_state.viser_server.set_training_state("completed")
     viewer_state.update_scene(step=step)
-    CONSOLE.log("Viewer started.")
-    subprocess.run(["python3", "share/camera.py"])
     while True:
         time.sleep(0.01)
 
