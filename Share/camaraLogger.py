@@ -1,8 +1,8 @@
 from os import wait
 #from Cloudstudio import nerfstudio
-from nerfstudio import viewer
-from nerfstudio.viewer import viewer_elements
-from Cloudstudio.nerfstudio.viewer.viewer_elements import ViewerControl
+#from nerfstudio import viewer
+#from nerfstudio.viewer import viewer_elements
+from nerfstudio.viewer.viewer_elements import ViewerControl
 
 
 viewer_control = ViewerControl()._setup()
