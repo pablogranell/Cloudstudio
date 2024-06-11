@@ -5,7 +5,7 @@ from os import wait
 from nerfstudio.viewer.viewer_elements import ViewerControl
 
 
-viewer_control = ViewerControl()._setup()
+viewer_control = ViewerControl()
 while True :
     wait(1)
     cameraPosition = viewer_control.get_camera(100, 100)
