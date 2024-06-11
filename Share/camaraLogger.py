@@ -1,16 +1,16 @@
-from os import wait
 import time
-#from Cloudstudio import nerfstudio
-#from nerfstudio import viewer
-#from nerfstudio.viewer import viewer_elements
-from nerfstudio.viewer.viewer_elements import ViewerControl
-from viser import ViserServer
 
-viser_server = ViserServer()
-viewer_control = ViewerControl()
+import viser
+from nerfstudio.viewer.viewer_elements import ViewerControl
+import viewer
+
+main = viewer.Viewer()
+viewer_server = viewer.ViewerServer(main)
+viewer_control = ViewerControl(viewer_server)
 while True :
     time.sleep(0.01)
-    if ViserServer.get_clients() == 0:
+    #print("Waiting for clients to connect.")
+    if viewer_control.get_num_clients() == 0:
         time.sleep(0.01)
         print("No clients connected.")
     else:
