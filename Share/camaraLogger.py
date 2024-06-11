@@ -2,7 +2,7 @@ import time
 
 import viser
 from nerfstudio.viewer.viewer_elements import ViewerControl
-import viewer
+import nerfstudio.viewer as viewer
 
 main = viewer.Viewer()
 viewer_server = viewer.ViewerServer(main)
