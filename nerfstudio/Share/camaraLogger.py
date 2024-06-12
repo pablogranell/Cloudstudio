@@ -16,3 +16,6 @@ class MyModel(nn.Module):
         if camera is None:
             print("Viewer no está conectado aún.")
             return
+
+if __name__ == "__main__":
+    MyModel()
