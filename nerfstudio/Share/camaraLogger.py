@@ -1,4 +1,4 @@
-from torck import nn
+from torch import nn
 from nerfstudio.viewer.viewer_elements import ViewerControl
 
 class MyModel(nn.Module):
