@@ -177,10 +177,17 @@ class Viewer:
 
         #Add button to sync camera position to other clients
         self.sync_camera = self.viser_server.add_gui_button(
-            label="Sync Camera", disabled=False, icon=viser.Icon.CAMERA
+            label="Activar sincronizacion", disabled=False, icon=viser.Icon.SYNC
         )
-        self.sync_camera.on_click(lambda _: self.sync_clients())
-        
+        self.sync_camera.on_click(lambda _: self.toggle_sync_button())
+        self.sync_camera.on_click(lambda _: self.sync_clients(True))
+        self.disable_sync_camera = self.viser_server.add_gui_button(
+            label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.SYNC
+        )
+        self.disable_sync_camera.on_click(lambda _: self.toggle_sync_button())
+        self.disable_sync_camera.on_click(lambda _: self.sync_clients(False))
+        self.disable_sync_camera.visible = False
+
         # Add buttons to toggle training image visibility
         self.hide_images = self.viser_server.add_gui_button(
             label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
@@ -298,7 +305,11 @@ class Viewer:
         self.hide_images.visible = not self.hide_images.visible
         self.show_images.visible = not self.show_images.visible
 
-    def sync_clients(self) -> None:
+    def toggle_sync_button(self) -> None:
+        self.sync_camera.visible = not self.sync_camera.visible
+        self.disable_sync_camera.visible = not self.disable_sync_camera.visible
+
+    def sync_clients(self, sync: bool) -> None:
         clients = self.viser_server.get_clients()
         CONSOLE.log(f"Syncing camera for all clients")
         CONSOLE.log(f"Number of clients: {len(clients)}")
@@ -308,12 +319,14 @@ class Viewer:
             #Begin with the second client
             for id in clients:
                 if id == 0:
+                    if not sync:
+                        return
                     CONSOLE.log(f"Skipping client {id}")
                     continue
-                self.get_camera_state(clients[id]).c2w = camera_state.c2w
-                self.get_camera_state(clients[id]).fov = camera_state.fov
-                self.get_camera_state(clients[id]).aspect = camera_state.aspect
-                CONSOLE.log(f"Set camera for client {id}")
+                CONSOLE.log(f"Syncing camera for client {id}")
+                self.render_statemachines[id].action(RenderAction("move", camera_state))
+        CONSOLE.log(f"1 second delay before next sync")
+        threading.Timer(1.0, self.sync_clients, args=(sync,)).start()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
