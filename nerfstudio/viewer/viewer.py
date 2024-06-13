@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Dict, List, Literal, Optional
 
 import numpy as np
 import torch
+from nerfstudio.utils.rich_utils import CONSOLE
 import viser
 import viser.theme
 import viser.transforms as vtf
@@ -173,6 +174,13 @@ class Viewer:
         self.resume_train.on_click(lambda _: self.toggle_pause_button())
         self.resume_train.on_click(lambda han: self._toggle_training_state(han))
         self.resume_train.visible = False
+
+        #Add button to sync camera position to other clients
+        self.sync_camera = self.viser_server.add_gui_button(
+            label="Sync Camera", disabled=False, icon=viser.Icon.CAMERA
+        )
+        self.sync_camera.on_click(lambda _: self.sync_camera())
+        
         # Add buttons to toggle training image visibility
         self.hide_images = self.viser_server.add_gui_button(
             label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
@@ -289,6 +297,22 @@ class Viewer:
     def toggle_cameravis_button(self) -> None:
         self.hide_images.visible = not self.hide_images.visible
         self.show_images.visible = not self.show_images.visible
+
+    def sync_camera(self) -> None:
+        clients = self.viser_server.get_clients()
+        CONSOLE.log(f"Syncing camera for all clients")
+        CONSOLE.log(f"Number of clients: {len(clients)}")
+        CONSOLE.log(f"Client IDs: {clients.keys()}")
+        for id in clients:
+            CONSOLE.log(f"Syncing camera for client {id}")
+            camera_state = self.get_camera_state(clients[id])
+            CONSOLE.log(f"Camera state: {camera_state}")
+            #Get all other clients
+            other_clients = {k: v for k, v in clients.items() if k != id}
+            for other_id in other_clients:
+                CONSOLE.log(f"Setting camera for client {other_id}")
+                other_clients[other_id].camera.position = camera_state.c2w[:, 3]
+                other_clients[other_id].camera.wxyz = vtf.SO3.from_matrix(camera_state.c2w[:, :3]).wxyz
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
