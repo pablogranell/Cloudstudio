@@ -311,11 +311,8 @@ class Viewer:
                 if id == 0:
                     CONSOLE.log(f"Skipping client {id}")
                     continue
-                #Set the camera for the other clients(Use ViewerControl)
-                control_Vector = self.viewer_controls[0]
-                #Pass the camera object
-                clients[id].camera.position = camera_state.position
-                clients[id].camera.wxyz = camera_state.wxyz
+                clients[id].camera.position = camera_state.c2w[:, 3]
+                clients[id].camera.wxyz = vtf.SO3.from_matrix(camera_state.c2w[:3, :3]).wxyz
                 CONSOLE.log(f"Set camera for client {id}")
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
