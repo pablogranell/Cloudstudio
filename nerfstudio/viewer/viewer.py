@@ -303,7 +303,8 @@ class Viewer:
         CONSOLE.log(f"Syncing camera for all clients")
         CONSOLE.log(f"Number of clients: {len(clients)}")
         if len(clients) >= 2:
-            camera_state = self.get_camera_state(clients[0])
+            control_Vector = self.viewer_controls[0]
+            camera_state = control_Vector.get_camera()
             CONSOLE.log(f"Camera state: {camera_state}")
             #Begin with the second client
             for id in clients:
@@ -311,7 +312,10 @@ class Viewer:
                     CONSOLE.log(f"Skipping client {id}")
                     continue
                 #Set the camera for the other clients(Use ViewerControl)
-                self.render_statemachines[id].action(RenderAction("move", camera_state))                
+                control_Vector = self.viewer_controls[0]
+                #Pass the camera object
+                clients[id].camera.position = camera_state.position
+                clients[id].camera.wxyz = camera_state.wxyz
                 CONSOLE.log(f"Set camera for client {id}")
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
