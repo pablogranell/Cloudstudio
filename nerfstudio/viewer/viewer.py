@@ -177,12 +177,12 @@ class Viewer:
 
         #Add button to sync camera position to other clients
         self.sync_camera = self.viser_server.add_gui_button(
-            label="Activar sincronizacion", disabled=False, icon=viser.Icon.SYNC
+            label="Activar sincronizacion", disabled=False, icon=viser.Icon.CAMERA_SHARE
         )
         self.sync_camera.on_click(lambda _: self.toggle_sync_button())
         self.sync_camera.on_click(lambda _: self.sync_clients(True))
         self.disable_sync_camera = self.viser_server.add_gui_button(
-            label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.SYNC
+            label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.SYNC.CAMERA_SHARE
         )
         self.disable_sync_camera.on_click(lambda _: self.toggle_sync_button())
         self.disable_sync_camera.on_click(lambda _: self.sync_clients(False))
