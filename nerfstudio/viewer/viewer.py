@@ -182,7 +182,7 @@ class Viewer:
         self.sync_camera.on_click(lambda _: self.toggle_sync_button())
         self.sync_camera.on_click(lambda _: self.sync_clients(True))
         self.disable_sync_camera = self.viser_server.add_gui_button(
-            label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.SYNC.CAMERA_SHARE
+            label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.CAMERA_SHARE
         )
         self.disable_sync_camera.on_click(lambda _: self.toggle_sync_button())
         self.disable_sync_camera.on_click(lambda _: self.sync_clients(False))
