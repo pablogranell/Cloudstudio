@@ -179,7 +179,7 @@ class Viewer:
         self.sync_camera = self.viser_server.add_gui_button(
             label="Sync Camera", disabled=False, icon=viser.Icon.CAMERA
         )
-        self.sync_camera.on_click(lambda _: self.sync_camera())
+        self.sync_camera.on_click(lambda _: self.sync_clients())
         
         # Add buttons to toggle training image visibility
         self.hide_images = self.viser_server.add_gui_button(
@@ -298,7 +298,7 @@ class Viewer:
         self.hide_images.visible = not self.hide_images.visible
         self.show_images.visible = not self.show_images.visible
 
-    def sync_camera(self) -> None:
+    def sync_clients(self) -> None:
         clients = self.viser_server.get_clients()
         CONSOLE.log(f"Syncing camera for all clients")
         CONSOLE.log(f"Number of clients: {len(clients)}")
