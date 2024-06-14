@@ -88,7 +88,6 @@ class Viewer:
         trainer: Optional[Trainer] = None,
         train_lock: Optional[threading.Lock] = None,
         share: bool = False,
-        camera_handles = []
     ):
         self.ready = False  # Set to True at end of constructor.
         self.config = config
@@ -173,7 +172,6 @@ class Viewer:
         #self.hide_images = self.viser_server.add_gui_button(
         #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
         #)
-        self.set_camera_visibility(False)
         #self.hide_images.on_click(lambda _: self.toggle_cameravis_button())
         #self.show_images = self.viser_server.add_gui_button(
         #    label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
