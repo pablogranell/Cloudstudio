@@ -300,12 +300,12 @@ class Viewer:
             #CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = self.viser_server.get_clients()
-                CONSOLE.log(f"ClienteS: {clients}")
-                #Comparar si es el cliente 0
-                CONSOLE.log(f"Cliente: {client.client_id}")
+                #CONSOLE.log(f"ClienteS: {clients}")
+                #CONSOLE.log(f"Cliente: {client.client_id}")
                 CONSOLE.log(f"ID del cliente: {client.client_id}")
                 #Fix client ID 0
                 if client.client_id == 0 & len(clients) > 1:
+                    CONSOLE.log("Cliente 0")
                     for id in clients:
                         if id != 0:
                             if not self.ready:
@@ -319,7 +319,7 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = clients[0].camera.position
                                 clients[id].camera.wxyz = clients[0].camera.wxyz
-                                client.flush()
+                                #client.flush()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
