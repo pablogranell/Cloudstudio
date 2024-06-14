@@ -384,10 +384,8 @@ class Viewer:
     def handle_new_client(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
-        CONSOLE.log(f"New client connected: {client.client_id}")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            CONSOLE.log("Camera update")
             if not self.ready:
                 return
             self.last_move_time = time.time()
