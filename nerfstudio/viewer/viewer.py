@@ -137,7 +137,7 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        self.set_camera_visibility(False)
+        lambda _: self.set_camera_visibility(False)
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pause Training", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
