@@ -305,8 +305,10 @@ class Viewer:
                     for id in clients:
                         if id != 0:
                             #CONSOLE.log(f"Cliente: {id}")
-                            camera_state = self.get_camera_state(client)
+                            #camera_state = self.get_camera_state(client)
                             #self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
+                            CONSOLE.log("clients: "+client)
+                            CONSOLE.log("clients cameras: "+ client.camera)
                             clients[id].camera.position = clients[0].camera.position
                             clients[id].camera.wxyz = clients[0].camera.wxyz
                             #self.render_statemachines[client.client_id].action(RenderAction("rerender", camera_state))
