@@ -304,14 +304,18 @@ class Viewer:
                 if len(clients) > 1:
                     for id in clients:
                         if id != 0:
-                            CONSOLE.print(clients[id])
-                            CONSOLE.print("Camera del cliente")
-                            CONSOLE.print(clients[id].camera)
-                            camera_state = self.get_camera_state(clients[0])
-                            self.render_statemachines[id].action(RenderAction("move", camera_state))
-                            clients[id].camera.position = clients[0].camera.position
-                            clients[id].camera.wxyz = clients[0].camera.wxyz
-                            client.flush()
+                            if not self.ready:
+                                return
+                            self.last_move_time = time.time()
+                            with self.viser_server.atomic():
+                                CONSOLE.print(clients[id])
+                                CONSOLE.print("Camera del cliente")
+                                CONSOLE.print(clients[id].camera)
+                                camera_state = self.get_camera_state(clients[0])
+                                self.render_statemachines[id].action(RenderAction("move", camera_state))
+                                clients[id].camera.position = clients[0].camera.position
+                                clients[id].camera.wxyz = clients[0].camera.wxyz
+                                client.flush()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
