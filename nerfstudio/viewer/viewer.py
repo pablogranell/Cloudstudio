@@ -133,9 +133,11 @@ class Viewer:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
         self.viser_server.configure_theme(
-            control_layout="collapsible",
+            control_layout="floating",
             dark_mode=True,
             brand_color=(255, 211, 105),
+            show_logo=False,
+            show_share_button=True,
         )
 
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
@@ -149,7 +151,7 @@ class Viewer:
         self.pause_train.on_click(lambda _: self.toggle_pause_button())
         self.pause_train.on_click(lambda han: self._toggle_training_state(han))
         self.resume_train = self.viser_server.add_gui_button(
-            label="Continuar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED
+            label="Continuar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED, is_button=False,
         )
         self.resume_train.on_click(lambda _: self.toggle_pause_button())
         self.resume_train.on_click(lambda han: self._toggle_training_state(han))
