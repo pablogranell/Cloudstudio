@@ -306,10 +306,10 @@ class Viewer:
                         if id != 0:
                             #CONSOLE.log(f"Cliente: {id}")
                             camera_state = self.get_camera_state(client)
-                            self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
+                            #self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
                             clients[id].camera.position = clients[0].camera.position
                             clients[id].camera.wxyz = clients[0].camera.wxyz
-                            self.render_statemachines[client.client_id].action(RenderAction("rerender", camera_state))
+                            #self.render_statemachines[client.client_id].action(RenderAction("rerender", camera_state))
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
