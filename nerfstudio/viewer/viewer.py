@@ -371,11 +371,11 @@ class Viewer:
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
 
-    def set_camera_visibility(self) -> None:
-        self = Viewer
+    def set_camera_visibility(self):
         """Toggle the visibility of the training cameras."""
-        for idx in self.camera_handles:
-            self.camera_handles[idx].visible = False
+        with viser.viser_server.atomic():
+            for idx in viser.camera_handles:
+                viser.camera_handles[idx].visible = False
 
     def update_camera_poses(self):
         # TODO this fn accounts for like ~5% of total train time
