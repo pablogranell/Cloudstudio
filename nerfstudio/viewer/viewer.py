@@ -142,7 +142,6 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        self.set_camera_visibility()
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pause Training", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -173,7 +172,7 @@ class Viewer:
         #self.hide_images = self.viser_server.add_gui_button(
         #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
         #)
-        
+        self.set_camera_visibility(False)
         #self.hide_images.on_click(lambda _: self.toggle_cameravis_button())
         #self.show_images = self.viser_server.add_gui_button(
         #    label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
@@ -371,11 +370,11 @@ class Viewer:
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
 
-    def set_camera_visibility(self):
+    def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
-        with viser.viser_server.atomic():
-            for idx in viser.camera_handles:
-                viser.camera_handles[idx].visible = False
+        with self.viser_server.atomic():
+            for idx in self.camera_handles:
+                self.camera_handles[idx].visible = visible
 
     def update_camera_poses(self):
         # TODO this fn accounts for like ~5% of total train time
