@@ -196,10 +196,10 @@ class Viewer:
                 default_composite_depth=self.config.default_composite_depth,
             )
         config_path = self.log_filename.parents[0] / "config.yml"
-        with tabs.add_tab("Render", viser.Icon.CAMERA):
-            self.render_tab_state = populate_render_tab(
-                self.viser_server, config_path, self.datapath, self.control_panel
-            )
+        #with tabs.add_tab("Render", viser.Icon.CAMERA):
+        self.render_tab_state = populate_render_tab(
+            self.viser_server, config_path, self.datapath, self.control_panel
+        )
 
         #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
         #    populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
@@ -294,32 +294,21 @@ class Viewer:
     #Quiero que este camera.on_update se ejecute solo en el cliente 0
     #Para que los demas clientes se sincronicen con el cliente 0
     def sync_camera(self, client: viser.ClientHandle) -> None:
-        #CONSOLE.log("Camera update function start")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            #CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = self.viser_server.get_clients()
-                #CONSOLE.log(f"ClienteS: {clients}")
-                #CONSOLE.log(f"Cliente: {client.client_id}")
-                CONSOLE.log(f"ID del cliente: {client.client_id}")
-                #Fix client ID 0
                 if client.client_id == 0 and len(clients) > 1:
-                    CONSOLE.log("Cliente 0")
                     for id in clients:
                         if id != 0:
                             if not self.ready:
                                 return
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
-                                #CONSOLE.print(clients[id])
-                                #CONSOLE.print("Camera del cliente")
-                                #CONSOLE.print(clients[id].camera)
                                 camera_state = self.get_camera_state(clients[0])
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
-                                clients[id].camera.position = clients[0].camera.position
-                                clients[id].camera.wxyz = clients[0].camera.wxyz
-                                #client.flush()
+                                #clients[id].camera.position = clients[0].camera.position
+                                #clients[id].camera.wxyz = clients[0].camera.wxyz
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
