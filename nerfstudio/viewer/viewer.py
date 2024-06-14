@@ -88,6 +88,7 @@ class Viewer:
         trainer: Optional[Trainer] = None,
         train_lock: Optional[threading.Lock] = None,
         share: bool = False,
+        camera_handles = []
     ):
         self.ready = False  # Set to True at end of constructor.
         self.config = config
