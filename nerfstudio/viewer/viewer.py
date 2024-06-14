@@ -375,7 +375,7 @@ class Viewer:
     def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
         with self.viser_server.atomic():
-            for idx in self.camera_handles:
+            for idx in self.camera_handles.keys():
                 self.camera_handles[idx].visible = visible
 
     def update_camera_poses(self):
