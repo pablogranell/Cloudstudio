@@ -324,7 +324,7 @@ class Viewer:
         def _(_: viser.CameraHandle) -> None:
             CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
-                clients = viser.viser_server.get_clients()
+                clients = viser.ViserServer.get_clients()
                 CONSOLE.log(f"Clientes: {clients}")
                 for id in clients:
                     if id != 0:
