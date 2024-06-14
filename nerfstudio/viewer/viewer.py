@@ -444,19 +444,18 @@ class Viewer:
 
     def init_scene(
         self,
-        train_dataset: InputDataset,
+        train_dataset: None,
         train_state: Literal["training", "paused", "completed"],
         eval_dataset: Optional[InputDataset] = None,
     ) -> None:
         """Draw some images and the scene aabb in the viewer.
-
         Args:
             dataset: dataset to render in the scene
             train_state: Current status of training
         """
         # draw the training cameras and images
-        self.camera_handles: Dict[int, viser.CameraFrustumHandle] = {}
-        self.original_c2w: Dict[int, np.ndarray] = {}
+        #self.camera_handles: Dict[int, viser.CameraFrustumHandle] = {}
+        #self.original_c2w: Dict[int, np.ndarray] = {}
         image_indices = self._pick_drawn_image_idxs(len(train_dataset))
         for idx in image_indices:
             image = train_dataset[idx]["image"]
