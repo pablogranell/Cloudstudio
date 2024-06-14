@@ -319,18 +319,21 @@ class Viewer:
     #Quiero que este camera.on_update se ejecute solo en el cliente 0
     #Para que los demas clientes se sincronicen con el cliente 0
     def sync_camera(self, client: viser.ClientHandle) -> None:
-        CONSOLE.log("Camera update function start")
+        #CONSOLE.log("Camera update function start")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
+            #CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = self.viser_server.get_clients()
-                CONSOLE.log(f"Clientes: {clients}")
+                #CONSOLE.log(f"Clientes: {clients}")
                 for id in clients:
                     if id != 0:
-                        CONSOLE.log(f"Cliente: {id}")
+                        #CONSOLE.log(f"Cliente: {id}")
+                        camera_state = self.get_camera_state(client)
+                        self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
                         clients[id].camera.position = clients[0].camera.position
                         clients[id].camera.wxyz = clients[0].camera.wxyz
+                        
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
