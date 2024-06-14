@@ -144,6 +144,7 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
+        self.viser_server.on_client_connect(self.set_camera_visibility(False))
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pausar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -174,7 +175,7 @@ class Viewer:
         self.hide_images = self.viser_server.add_gui_button(
             label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
         )
-        self.set_camera_visibility(False)
+        
         self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
         self.show_images = self.viser_server.add_gui_button(
             label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
@@ -375,7 +376,7 @@ class Viewer:
     def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
         with self.viser_server.atomic():
-            for idx in self.camera_handles.keys():
+            for idx in self.camera_handles:
                 self.camera_handles[idx].visible = visible
 
     def update_camera_poses(self):
