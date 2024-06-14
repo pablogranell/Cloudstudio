@@ -133,7 +133,7 @@ class Viewer:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
         self.viser_server.configure_theme(
-            control_layout="floating",
+            control_layout="collapsible",
             dark_mode=True,
             brand_color=(255, 211, 105),
             show_logo=False,
@@ -307,8 +307,8 @@ class Viewer:
                             #CONSOLE.log(f"Cliente: {id}")
                             #camera_state = self.get_camera_state(client)
                             #self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
-                            CONSOLE.print("clients: "+client)
-                            CONSOLE.print("clients cameras: "+ client.camera)
+                            CONSOLE.print("clients: "+clients[id])
+                            CONSOLE.print("clients cameras: "+ clients[id].camera)
                             clients[id].camera.position = clients[0].camera.position
                             clients[id].camera.wxyz = clients[0].camera.wxyz
                             #self.render_statemachines[client.client_id].action(RenderAction("rerender", camera_state))
