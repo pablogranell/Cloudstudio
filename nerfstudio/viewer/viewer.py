@@ -144,7 +144,7 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        self.viser_server.on_client_connect(self.set_camera_visibility(False))
+        #self.viser_server.on_client_connect(self.set_camera_visibility(False))
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pausar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -172,17 +172,17 @@ class Viewer:
         self.disable_sync_camera.visible = False
 
         # Add buttons to toggle training image visibility
-        self.hide_images = self.viser_server.add_gui_button(
-            label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
-        )
+        #self.hide_images = self.viser_server.add_gui_button(
+        #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
+        #)
         
-        self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
-        self.show_images = self.viser_server.add_gui_button(
-            label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
-        )
-        self.show_images.on_click(lambda _: self.set_camera_visibility(True))
-        self.show_images.on_click(lambda _: self.toggle_cameravis_button())
-        self.show_images.visible = False
+        #self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
+        #self.show_images = self.viser_server.add_gui_button(
+        #    label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
+        #)
+        #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
+        #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
+        #self.show_images.visible = False
         mkdown = self.make_stats_markdown(0, "0x0px")
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
@@ -489,8 +489,8 @@ class Viewer:
                     event.client.camera.position = event.target.position
                     event.client.camera.wxyz = event.target.wxyz
 
-            self.camera_handles[idx] = camera_handle
-            self.original_c2w[idx] = c2w
+            #self.camera_handles[idx] = camera_handle
+            #self.original_c2w[idx] = c2w
 
         self.train_state = train_state
         self.train_util = 0.9
