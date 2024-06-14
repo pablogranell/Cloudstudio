@@ -132,6 +132,7 @@ class Viewer:
         else:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
+        self.set_camera_visibility(False)
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
@@ -164,36 +165,36 @@ class Viewer:
         self.disable_sync_camera.visible = False
 
         # Add buttons to toggle training image visibility
-        self.hide_images = self.viser_server.add_gui_button(
-            label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
-        )
-        self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
-        self.hide_images.on_click(lambda _: self.toggle_cameravis_button())
-        self.show_images = self.viser_server.add_gui_button(
-            label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
-        )
-        self.show_images.on_click(lambda _: self.set_camera_visibility(True))
-        self.show_images.on_click(lambda _: self.toggle_cameravis_button())
-        self.show_images.visible = False
+        #self.hide_images = self.viser_server.add_gui_button(
+        #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
+        #)
+        
+        #self.hide_images.on_click(lambda _: self.toggle_cameravis_button())
+        #self.show_images = self.viser_server.add_gui_button(
+        #    label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
+        #)
+        #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
+        #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
+        #self.show_images.visible = False
         mkdown = self.make_stats_markdown(0, "0x0px")
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
-        #tabs = self.viser_server.add_gui_tab_group()
-        #control_tab = tabs.add_tab("Control", viser.Icon.SETTINGS)
-        #with control_tab:
-        self.control_panel = ControlPanel(
-            self.viser_server,
-            self.include_time,
-            VISER_NERFSTUDIO_SCALE_RATIO,
-            self._trigger_rerender,
-            self._output_type_change,
-            self._output_split_type_change,
-            default_composite_depth=self.config.default_composite_depth,
-        )
+        tabs = self.viser_server.add_gui_tab_group()
+        control_tab = tabs.add_tab("Control", viser.Icon.SETTINGS)
+        with control_tab:
+            self.control_panel = ControlPanel(
+                self.viser_server,
+                self.include_time,
+                VISER_NERFSTUDIO_SCALE_RATIO,
+                self._trigger_rerender,
+                self._output_type_change,
+                self._output_split_type_change,
+                default_composite_depth=self.config.default_composite_depth,
+            )
         config_path = self.log_filename.parents[0] / "config.yml"
-        #with tabs.add_tab("Render", viser.Icon.CAMERA):
-        self.render_tab_state = populate_render_tab(
-            self.viser_server, config_path, self.datapath, self.control_panel
-        )
+        with tabs.add_tab("Render", viser.Icon.CAMERA):
+            self.render_tab_state = populate_render_tab(
+                self.viser_server, config_path, self.datapath, self.control_panel
+            )
 
         #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
         #    populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
