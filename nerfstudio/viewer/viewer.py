@@ -132,12 +132,17 @@ class Viewer:
         else:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
-        
+        self.viser_server.configure_theme(
+            control_layout="collapsible",
+            dark_mode=True,
+            brand_color=(255, 211, 105),
+        )
+
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        lambda _: self.set_camera_visibility(False)
+        self.set_camera_visibility(False)
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pause Training", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -366,7 +371,8 @@ class Viewer:
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
 
-    def set_camera_visibility(self, visible: bool) -> None:
+    def set_camera_visibility(visible: bool) -> None:
+        self = Viewer
         """Toggle the visibility of the training cameras."""
         with self.viser_server.atomic():
             for idx in self.camera_handles:
