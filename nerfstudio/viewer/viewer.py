@@ -56,8 +56,8 @@ sincronizacion = False
 
 def toggle_sincronizacion():
     global sincronizacion
-    CONSOLE.print(f"Sincronizacion: {sincronizacion}")
     sincronizacion = not sincronizacion
+    CONSOLE.print(f"Sincronizacion: {sincronizacion}")
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -322,7 +322,7 @@ class Viewer:
         CONSOLE.log("Camera update function start")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            CONSOLE.log("Camera update function in")
+            CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = viser.viser_server.get_clients()
                 CONSOLE.log(f"Clientes: {clients}")
