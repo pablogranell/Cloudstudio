@@ -321,7 +321,7 @@ class Viewer:
     def sync_camera(self, client: viser.ClientHandle) -> None:
         CONSOLE.log("Camera update function start")
         @client.camera.on_update
-        def _() -> None:
+        def _(_: viser.CameraHandle) -> None:
             CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = self.viser_server.get_clients()
