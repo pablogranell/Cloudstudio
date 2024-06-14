@@ -198,7 +198,7 @@ class Viewer:
         config_path = self.log_filename.parents[0] / "config.yml"
         #with tabs.add_tab("Render", viser.Icon.CAMERA):
         self.render_tab_state = populate_render_tab(
-            self.viser_server, config_path, self.datapath, self.control_panel
+            #self.viser_server, config_path, self.datapath, self.control_panel
         )
 
         #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
@@ -307,8 +307,8 @@ class Viewer:
                             with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(clients[0])
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
-                                #clients[id].camera.position = clients[0].camera.position
-                                #clients[id].camera.wxyz = clients[0].camera.wxyz
+                                clients[id].camera.position = clients[0].camera.position
+                                clients[id].camera.wxyz = clients[0].camera.wxyz
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
