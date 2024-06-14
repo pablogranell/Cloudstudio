@@ -480,7 +480,7 @@ class Viewer:
             #    image=image_uint8,
             #    wxyz=R.wxyz,
             #   position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
-            )
+            #)
 
             #@camera_handle.on_click
             def _(event: viser.SceneNodePointerEvent[viser.CameraFrustumHandle]) -> None:
