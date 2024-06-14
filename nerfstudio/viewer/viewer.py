@@ -151,7 +151,7 @@ class Viewer:
         self.pause_train.on_click(lambda _: self.toggle_pause_button())
         self.pause_train.on_click(lambda han: self._toggle_training_state(han))
         self.resume_train = self.viser_server.add_gui_button(
-            label="Continuar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED, is_button=False,
+            label="Continuar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED,
         )
         self.resume_train.on_click(lambda _: self.toggle_pause_button())
         self.resume_train.on_click(lambda han: self._toggle_training_state(han))
