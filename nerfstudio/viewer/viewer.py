@@ -374,9 +374,8 @@ class Viewer:
     def set_camera_visibility(self) -> None:
         self = Viewer
         """Toggle the visibility of the training cameras."""
-        with self.viser_server.atomic():
-            for idx in self.camera_handles:
-                self.camera_handles[idx].visible = visible
+        for idx in self.camera_handles:
+            self.camera_handles[idx].visible = False
 
     def update_camera_poses(self):
         # TODO this fn accounts for like ~5% of total train time
