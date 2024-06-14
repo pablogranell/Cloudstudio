@@ -52,7 +52,12 @@ if TYPE_CHECKING:
 
 
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
+sincronizacion = False
 
+def toggle_sincronizacion():
+    global sincronizacion
+    CONSOLE.print(f"Sincronizacion: {sincronizacion}")
+    sincronizacion = not sincronizacion
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -180,12 +185,12 @@ class Viewer:
             label="Activar sincronizacion", disabled=False, icon=viser.Icon.CAMERA_SHARE
         )
         self.sync_camera.on_click(lambda _: self.toggle_sync_button())
-        self.sync_camera.on_click(lambda _: self.sync_clients(True))
+        self.sync_camera.on_click(lambda _: toggle_sincronizacion())
         self.disable_sync_camera = self.viser_server.add_gui_button(
             label="Desactivar Sincronizacion", disabled=False, icon=viser.Icon.CAMERA_SHARE
         )
         self.disable_sync_camera.on_click(lambda _: self.toggle_sync_button())
-        self.disable_sync_camera.on_click(lambda _: self.sync_clients(False))
+        self.disable_sync_camera.on_click(lambda _: toggle_sincronizacion())
         self.disable_sync_camera.visible = False
 
         # Add buttons to toggle training image visibility
@@ -309,25 +314,21 @@ class Viewer:
         self.sync_camera.visible = not self.sync_camera.visible
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
-    def sync_clients(self, sync: bool) -> None:
-        clients = self.viser_server.get_clients()
-        CONSOLE.log(f"Syncing camera for all clients")
-        CONSOLE.log(f"Number of clients: {len(clients)}")
-        if len(clients) >= 2:
-            camera_state = self.get_camera_state(clients[0])
-            CONSOLE.log(f"Camera state: {camera_state}")
-            #Begin with the second client
+    #Sincronizar la camara del cliente 0 con los demas clientes
+    #Quiero que este camera.on_update se ejecute solo en el cliente 0
+    #Para que los demas clientes se sincronicen con el cliente 0
+    @viser.ClientHandle.camera.on_update
+    def _sync_camera() -> None:
+        CONSOLE.log("Camera updated")
+        if sincronizacion:
+            clients = viser.viser_server.get_clients()
+            CONSOLE.log(f"Clientes: {clients}")
             for id in clients:
-                if id == 0:
-                    if not sync:
-                        return
-                    CONSOLE.log(f"Skipping client {id}")
-                    continue
-                CONSOLE.log(f"Syncing camera for client {id}")
-                self.render_statemachines[id].action(RenderAction("move", camera_state))
-        CONSOLE.log(f"1 second delay before next sync")
-        threading.Timer(1.0, self.sync_clients, args=(sync,)).start()
-
+                if id != 0:
+                    CONSOLE.log(f"Cliente: {id}")
+                    clients[id].camera.position = clients[0].camera.position
+                    clients[id].camera.wxyz = clients[0].camera.wxyz
+           
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
         if step is None:
