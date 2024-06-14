@@ -166,6 +166,7 @@ class Viewer:
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
+        self.viser_server.on_client_disconnect(self.sync_camera)
 
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
@@ -318,9 +319,10 @@ class Viewer:
     #Quiero que este camera.on_update se ejecute solo en el cliente 0
     #Para que los demas clientes se sincronicen con el cliente 0
     def sync_camera(self, client: viser.ClientHandle) -> None:
-        CONSOLE.log("Camera updated")
+        CONSOLE.log("Camera update function start")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
+            CONSOLE.log("Camera update function in")
             if sincronizacion:
                 clients = viser.viser_server.get_clients()
                 CONSOLE.log(f"Clientes: {clients}")
