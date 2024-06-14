@@ -144,12 +144,12 @@ class Viewer:
         self.viser_server.on_client_connect(self.sync_camera)
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
-            label="Pause Training", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
+            label="Pausar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
         )
         self.pause_train.on_click(lambda _: self.toggle_pause_button())
         self.pause_train.on_click(lambda han: self._toggle_training_state(han))
         self.resume_train = self.viser_server.add_gui_button(
-            label="Resume Training", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED
+            label="Continuar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PLAY_FILLED
         )
         self.resume_train.on_click(lambda _: self.toggle_pause_button())
         self.resume_train.on_click(lambda han: self._toggle_training_state(han))
@@ -299,15 +299,15 @@ class Viewer:
             if sincronizacion:
                 clients = self.viser_server.get_clients()
                 #CONSOLE.log(f"Clientes: {clients}")
-                for id in clients:
-                    if id != 0:
-                        #CONSOLE.log(f"Cliente: {id}")
-                        camera_state = self.get_camera_state(client)
-                        self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
-                        clients[id].camera.position = clients[0].camera.position
-                        clients[id].camera.wxyz = clients[0].camera.wxyz
-                        self.render_statemachines[client.client_id].action(RenderAction("rerender"))
-                        
+                if len(clients) > 1:
+                    for id in clients:
+                        if id != 0:
+                            #CONSOLE.log(f"Cliente: {id}")
+                            camera_state = self.get_camera_state(client)
+                            self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
+                            clients[id].camera.position = clients[0].camera.position
+                            clients[id].camera.wxyz = clients[0].camera.wxyz
+                            self.render_statemachines[client.client_id].action(RenderAction("rerender", camera_state))
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
