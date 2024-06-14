@@ -301,7 +301,8 @@ class Viewer:
             if sincronizacion:
                 clients = self.viser_server.get_clients()
                 #CONSOLE.log(f"Clientes: {clients}")
-                if len(clients) > 1:
+                #Comparar si es el cliente 0
+                if client.client_id == 0 & len(clients) > 1:
                     for id in clients:
                         if id != 0:
                             if not self.ready:
