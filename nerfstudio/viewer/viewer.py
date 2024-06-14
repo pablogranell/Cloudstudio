@@ -300,18 +300,20 @@ class Viewer:
             #CONSOLE.print(f"Sincronizacion es: {sincronizacion}")
             if sincronizacion:
                 clients = self.viser_server.get_clients()
-                CONSOLE.log(f"Clientes: {clients}")
+                CONSOLE.log(f"ClienteS: {clients}")
                 #Comparar si es el cliente 0
-                if client.client_id == 1 & len(clients) > 1:
+                CONSOLE.log(f"Cliente: {client.client_id}")
+                CONSOLE.log(f"ID del cliente: {client.client_id}")
+                if client.client_id == 0 & len(clients) > 1:
                     for id in clients:
                         if id != 0:
                             if not self.ready:
                                 return
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
-                                CONSOLE.print(clients[id])
-                                CONSOLE.print("Camera del cliente")
-                                CONSOLE.print(clients[id].camera)
+                                #CONSOLE.print(clients[id])
+                                #CONSOLE.print("Camera del cliente")
+                                #CONSOLE.print(clients[id].camera)
                                 camera_state = self.get_camera_state(clients[0])
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = clients[0].camera.position
