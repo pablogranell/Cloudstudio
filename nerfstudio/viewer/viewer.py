@@ -317,7 +317,7 @@ class Viewer:
     #Sincronizar la camara del cliente 0 con los demas clientes
     #Quiero que este camera.on_update se ejecute solo en el cliente 0
     #Para que los demas clientes se sincronicen con el cliente 0
-    @viser.ClientHandle.camera.on_update
+    @viser.ClientHandle.CameraHandle.on_update
     def _sync_camera() -> None:
         CONSOLE.log("Camera updated")
         if sincronizacion:
