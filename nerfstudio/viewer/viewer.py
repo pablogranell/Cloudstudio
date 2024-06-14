@@ -304,7 +304,7 @@ class Viewer:
                 #CONSOLE.log(f"Cliente: {client.client_id}")
                 CONSOLE.log(f"ID del cliente: {client.client_id}")
                 #Fix client ID 0
-                if client.client_id == 0 & len(clients) > 1:
+                if client.client_id == 0 and len(clients) > 1:
                     CONSOLE.log("Cliente 0")
                     for id in clients:
                         if id != 0:
