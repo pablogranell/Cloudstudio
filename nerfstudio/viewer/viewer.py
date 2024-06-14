@@ -132,37 +132,6 @@ class Viewer:
         else:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
-        buttons = (
-            viser.theme.TitlebarButton(
-                text="Getting Started",
-                icon=None,
-                href="https://nerf.studio",
-            ),
-            viser.theme.TitlebarButton(
-                text="Github",
-                icon="GitHub",
-                href="https://github.com/nerfstudio-project/nerfstudio",
-            ),
-            viser.theme.TitlebarButton(
-                text="Documentation",
-                icon="Description",
-                href="https://docs.nerf.studio",
-            ),
-        )
-        image = viser.theme.TitlebarImage(
-            image_url_light="https://docs.nerf.studio/_static/imgs/logo.png",
-            image_url_dark="https://docs.nerf.studio/_static/imgs/logo-dark.png",
-            image_alt="NerfStudio Logo",
-            href="https://docs.nerf.studio/",
-        )
-        titlebar_theme = viser.theme.TitlebarConfig(buttons=buttons, image=image)
-        self.viser_server.configure_theme(
-            titlebar_content=titlebar_theme,
-            control_layout="collapsible",
-            dark_mode=True,
-            brand_color=(255, 211, 105),
-        )
-
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
@@ -221,13 +190,13 @@ class Viewer:
                 default_composite_depth=self.config.default_composite_depth,
             )
         config_path = self.log_filename.parents[0] / "config.yml"
-        with tabs.add_tab("Render", viser.Icon.CAMERA):
-            self.render_tab_state = populate_render_tab(
-                self.viser_server, config_path, self.datapath, self.control_panel
-            )
+        #with tabs.add_tab("Render", viser.Icon.CAMERA):
+        #    self.render_tab_state = populate_render_tab(
+        #        self.viser_server, config_path, self.datapath, self.control_panel
+        #    )
 
-        with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
-            populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
+        #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
+        #    populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
 
         # Keep track of the pointers to generated GUI folders, because each generated folder holds a unique ID.
         viewer_gui_folders = dict()
