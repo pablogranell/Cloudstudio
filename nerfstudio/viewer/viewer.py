@@ -174,7 +174,7 @@ class Viewer:
         self.hide_images = self.viser_server.add_gui_button(
             label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
         )
-        viser.CameraHandle.set_camera_visibility(False)
+        self.set_camera_visibility(False)
         self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
         self.show_images = self.viser_server.add_gui_button(
             label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
