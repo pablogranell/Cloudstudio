@@ -463,7 +463,7 @@ class Viewer:
                 aspect=float(camera.cx[0] / camera.cy[0]),
                 image=image_uint8,
                 wxyz=R.wxyz,
-                #position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
+                position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
             )
 
             #@camera_handle.on_click
@@ -472,8 +472,8 @@ class Viewer:
                     event.client.camera.position = event.target.position
                     event.client.camera.wxyz = event.target.wxyz
 
-            self.camera_handles[idx] = camera_handle
-            self.original_c2w[idx] = c2w
+            #self.camera_handles[idx] = camera_handle
+            #self.original_c2w[idx] = c2w
 
         self.train_state = train_state
         self.train_util = 0.9
