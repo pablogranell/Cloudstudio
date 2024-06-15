@@ -333,28 +333,12 @@ class Viewer:
         R = torch.tensor(R.as_matrix())
         pos = torch.tensor(client.camera.position, dtype=torch.float64) / VISER_NERFSTUDIO_SCALE_RATIO
         c2w = torch.concatenate([R, pos[:, None]], dim=1)
-        if self.ready:
-            camera_type = CameraType.PERSPECTIVE
-            camera_state = CameraState(
-                fov=client.camera.fov,
-                aspect=client.camera.aspect,
-                c2w=c2w,
-                time=time.time(),
-                camera_type=CameraType.PERSPECTIVE
-                if camera_type == "Perspective"
-                else CameraType.FISHEYE
-                if camera_type == "Fisheye"
-                else CameraType.EQUIRECTANGULAR
-                if camera_type == "Equirectangular"
-                else assert_never(camera_type),
-            )
-        else:
-            camera_state = CameraState(
-                fov=client.camera.fov,
-                aspect=client.camera.aspect,
-                c2w=c2w,
-                camera_type=CameraType.PERSPECTIVE,
-            )
+        camera_state = CameraState(
+            fov=client.camera.fov,
+            aspect=client.camera.aspect,
+            c2w=c2w,
+            camera_type=CameraType.PERSPECTIVE,
+        )
         return camera_state
 
     def handle_disconnect(self, client: viser.ClientHandle) -> None:
