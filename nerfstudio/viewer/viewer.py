@@ -198,10 +198,10 @@ class Viewer:
                 default_composite_depth=self.config.default_composite_depth,
             )
         config_path = self.log_filename.parents[0] / "config.yml"
-        with tabs.add_tab("Render", viser.Icon.CAMERA):
-            self.render_tab_state = populate_render_tab(
-                self.viser_server, config_path, self.datapath, self.control_panel
-            )
+        #with tabs.add_tab("Render", viser.Icon.CAMERA):
+        #    self.render_tab_state = populate_render_tab(
+        #        self.viser_server, config_path, self.datapath, self.control_panel
+        #    )
 
         #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
         #    populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
@@ -333,13 +333,13 @@ class Viewer:
         R = torch.tensor(R.as_matrix())
         pos = torch.tensor(client.camera.position, dtype=torch.float64) / VISER_NERFSTUDIO_SCALE_RATIO
         c2w = torch.concatenate([R, pos[:, None]], dim=1)
-        if self.ready and self.render_tab_state.preview_render:
-            camera_type = self.render_tab_state.preview_camera_type
+        if self.ready:
+            camera_type = CameraType.PERSPECTIVE
             camera_state = CameraState(
-                fov=self.render_tab_state.preview_fov,
-                aspect=self.render_tab_state.preview_aspect,
+                fov=client.camera.fov,
+                aspect=client.camera.aspect,
                 c2w=c2w,
-                time=self.render_tab_state.preview_time,
+                time=time.time(),
                 camera_type=CameraType.PERSPECTIVE
                 if camera_type == "Perspective"
                 else CameraType.FISHEYE
