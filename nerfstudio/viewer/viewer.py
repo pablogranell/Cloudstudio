@@ -462,8 +462,8 @@ class Viewer:
                 scale=self.config.camera_frustum_scale,
                 aspect=float(camera.cx[0] / camera.cy[0]),
                 image=image_uint8,
-                #wxyz=R.wxyz,
-                position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
+                wxyz=R.wxyz,
+                #position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
             )
 
             #@camera_handle.on_click
