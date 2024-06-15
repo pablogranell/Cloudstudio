@@ -131,7 +131,7 @@ class RenderStateMachine(threading.Thread):
 
         # These 2 lines make the control panel's time option independent from the render panel's.
         # When outside of render preview, it will use the control panel's time.
-        if not self.viewer.render_tab_state.preview_render and self.viewer.include_time:
+        if self.viewer.include_time:
             camera_state.time = self.viewer.control_panel.time
         camera = get_camera(camera_state, image_height, image_width)
         camera = camera.to(self.viewer.get_model().device)
@@ -299,8 +299,6 @@ class RenderStateMachine(threading.Thread):
             self.viewer.config.jpeg_quality
             if static_render
             else 75
-            if self.viewer.render_tab_state.preview_render
-            else 40
         )
         self.client.set_background_image(
             selected_output,
