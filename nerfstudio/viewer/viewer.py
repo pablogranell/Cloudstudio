@@ -489,7 +489,7 @@ class Viewer:
                     event.client.camera.wxyz = event.target.wxyz
 
             self.camera_handles[idx] = None
-            self.original_c2w[idx] = None
+            self.original_c2w[idx] = c2w
 
         self.train_state = train_state
         self.train_util = 0.9
