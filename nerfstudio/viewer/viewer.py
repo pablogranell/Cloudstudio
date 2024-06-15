@@ -444,7 +444,7 @@ class Viewer:
 
     def init_scene(
         self,
-        train_dataset: InputDataset,
+        train_dataset: None,
         train_state: Literal["training", "paused", "completed"],
         eval_dataset: Optional[InputDataset] = None,
     ) -> None:
@@ -472,24 +472,24 @@ class Viewer:
             c2w = camera.camera_to_worlds.cpu().numpy()
             R = vtf.SO3.from_matrix(c2w[:3, :3])
             R = R @ vtf.SO3.from_x_radians(np.pi)
-            #camera_handle = self.viser_server.add_camera_frustum(
-            #    name=f"/cameras/camera_{idx:05d}",
-            #    fov=float(2 * np.arctan(camera.cx / camera.fx[0])),
-            #    scale=self.config.camera_frustum_scale,
-            #    aspect=float(camera.cx[0] / camera.cy[0]),
-            #    image=image_uint8,
-            #    wxyz=R.wxyz,
-            #   position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
-            #)
+            camera_handle = self.viser_server.add_camera_frustum(
+                name=f"/cameras/camera_{idx:05d}",
+                fov=float(2 * np.arctan(camera.cx / camera.fx[0])),
+                scale=self.config.camera_frustum_scale,
+                aspect=float(camera.cx[0] / camera.cy[0]),
+                image=image_uint8,
+                wxyz=R.wxyz,
+               position=c2w[:3, 3] * VISER_NERFSTUDIO_SCALE_RATIO,
+            )
 
-            #@camera_handle.on_click
-            #def _(event: viser.SceneNodePointerEvent[viser.CameraFrustumHandle]) -> None:
-            #    with event.client.atomic():
-            #        event.client.camera.position = event.target.position
-            #        event.client.camera.wxyz = event.target.wxyz
+            @camera_handle.on_click
+            def _(event: viser.SceneNodePointerEvent[viser.CameraFrustumHandle]) -> None:
+                with event.client.atomic():
+                    event.client.camera.position = event.target.position
+                    event.client.camera.wxyz = event.target.wxyz
 
-            self.camera_handles[idx] = None
-            self.original_c2w[idx] = None
+            self.camera_handles[idx] = camera_handle
+            self.original_c2w[idx] = c2w
 
         self.train_state = train_state
         self.train_util = 0.9
