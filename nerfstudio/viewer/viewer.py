@@ -305,10 +305,13 @@ class Viewer:
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(client)
+                                self.render_statemachines[id].running = False
                                 self.render_statemachines[id].action(RenderAction("static", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                #self.render_statemachines[id].action(RenderAction("static", camera_state))
+                                #sets the state of other clients to not trigger camera.on_update
+                                
+
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
