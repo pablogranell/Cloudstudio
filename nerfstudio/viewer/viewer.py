@@ -292,9 +292,6 @@ class Viewer:
         self.sync_camera.visible = not self.sync_camera.visible
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
-    #Sincronizar la camara del cliente 0 con los demas clientes
-    #Quiero que este camera.on_update se ejecute solo en el cliente 0
-    #Para que los demas clientes se sincronicen con el cliente 0
     def sync_camera(self, client: viser.ClientHandle) -> None:
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
@@ -305,7 +302,8 @@ class Viewer:
                         if id != client.client_id:
                             if not self.ready:
                                 return
-                            self.last_move_time = time.time()
+                            #self.last_move_time = time.time()
+                            
                             with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(client)
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
