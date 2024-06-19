@@ -64,7 +64,7 @@ def toggle_sincronizacion():
 def reset_updating():
     global updating
     updating = False
-    CONSOLE.print(f"reset updating, now: "+updating)
+    CONSOLE.print(f"reset updating, now: {updating}")
 
 def toggle_updating():
     global updating
