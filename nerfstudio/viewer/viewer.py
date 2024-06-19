@@ -304,7 +304,7 @@ class Viewer:
         self.sync_camera.visible = not self.sync_camera.visible
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
-    def finalSync(client, target_client):
+    def finalSync(self, client, target_client):
         CONSOLE.print("final")
         #Final adjustment to the camera position
         if client.camera.position != target_client.camera.position or client.camera.wxyz != target_client.camera.wxyz:
