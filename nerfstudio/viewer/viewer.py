@@ -55,6 +55,7 @@ if TYPE_CHECKING:
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
 updating = False
+syncThreads = []
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -331,18 +332,13 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                all_threads = threading.enumerate()
-                                update_threads = [t for t in all_threads if t._target == reset_updating]
-                                if len(update_threads) > 1:
-                                    for thread in update_threads[:-1]:
-                                        thread.cancel()
                                 threading.Timer(0.4, reset_updating).start()
-                                all_threads = threading.enumerate()
-                                sync_threads = [t for t in all_threads if t._target == finalSync]
-                                if len(sync_threads) > 1:
-                                    for thread in sync_threads[:-1]:
-                                        thread.cancel()
-                                threading.Timer(1, finalSync, args=[client, clients[id]]).start()
+                                syncThreads.append(threading.Timer(1, finalSync, args=[client, clients[id]]).start())
+                                #Delete every thread before the last one
+                                if len(syncThreads) > 1:
+                                    for i in range(len(syncThreads)-1):
+                                        syncThreads[i].cancel()
+                                        syncThreads.pop(i)                      
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
