@@ -304,6 +304,14 @@ class Viewer:
         self.sync_camera.visible = not self.sync_camera.visible
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
+    def finalSync(client, target_client):
+        #Final adjustment to the camera position
+        if client.camera.position != target_client.camera.position or client.camera.wxyz != target_client.camera.wxyz:
+            toggle_updating()
+            target_client.camera.position = client.camera.position
+            target_client.camera.wxyz = client.camera.wxyz
+            threading.Timer(0.3, reset_updating).start()
+
     def sync_camera(self, client: viser.ClientHandle) -> None:
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
@@ -321,7 +329,8 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.25, reset_updating).start()
+                                threading.Timer(0.3, reset_updating).start()
+                                threading.Timer(1, self.finalSync, args=[client, clients[id]]).start()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
