@@ -74,14 +74,12 @@ def toggle_updating():
     #CONSOLE.print(f"updating: {updating}")
 
 def finalSync(client, target_client):
-        CONSOLE.print("final")
         #Final adjustment to the camera position
         if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
             toggle_updating()
-            #CONSOLE.print("final sync")
             target_client.camera.position = client.camera.position
             target_client.camera.wxyz = client.camera.wxyz
-            threading.Timer(0.4, reset_updating).start()
+            #threading.Timer(0.4, reset_updating).start()
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -333,8 +331,8 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.4, reset_updating).start()
                                 with sync_lock:
+                                    threading.Timer(0.3, reset_updating).start()
                                     for thread in syncThreads:
                                         thread.cancel()
                                         syncThreads.clear()
