@@ -56,6 +56,7 @@ VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
 updating = False
 syncThreads = []
+sync_lock = threading.Lock()
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -77,7 +78,7 @@ def finalSync(client, target_client):
         #Final adjustment to the camera position
         if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
             toggle_updating()
-            CONSOLE.print("final sync")
+            #CONSOLE.print("final sync")
             target_client.camera.position = client.camera.position
             target_client.camera.wxyz = client.camera.wxyz
             threading.Timer(0.4, reset_updating).start()
@@ -333,12 +334,13 @@ class Viewer:
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
                                 threading.Timer(0.4, reset_updating).start()
-                                syncThreads.append(threading.Timer(1, finalSync, args=[client, clients[id]]).start())
-                                #Delete every thread before the last one
-                                if len(syncThreads) > 1:
-                                    for i in range(len(syncThreads)-1):
-                                        syncThreads[i].cancel()
-                                        syncThreads.pop(i)                      
+                                with sync_lock:
+                                    for thread in syncThreads:
+                                        thread.cancel()
+                                        syncThreads.clear()
+                                    sync_thread = threading.Timer(1, finalSync, args=[client, clients[id]])
+                                    sync_thread.start()
+                                    syncThreads.append(sync_thread)                   
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
