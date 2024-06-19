@@ -54,11 +54,22 @@ if TYPE_CHECKING:
 
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
+updating = False
 
 def toggle_sincronizacion():
     global sincronizacion
     sincronizacion = not sincronizacion
     CONSOLE.print(f"Sincronizacion: {sincronizacion}")
+
+def reset_updating():
+    global updating
+    updating = False
+    CONSOLE.print(f"reset updating, now: "+updating)
+
+def toggle_updating():
+    global updating
+    updating = True
+    CONSOLE.print(f"updating: {updating}")
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -294,16 +305,10 @@ class Viewer:
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
     def sync_camera(self, client: viser.ClientHandle) -> None:
-        self.updating = False
-
-        def reset_updating():
-            self.updating = False
-            CONSOLE.print("reset updating, now: "+self.updating)
-
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            if self.updating:
-                return 
+            if updating:
+                return
             if sincronizacion:
                 clients = self.viser_server.get_clients()
                 if len(clients) > 1:
@@ -312,12 +317,11 @@ class Viewer:
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(client)
-                                self.updating = True
-                                CONSOLE.print("aaa"+self.updating)
+                                toggle_updating()
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.5, reset_updating).start()
+                                threading.Timer(0.5, reset_updating()).start()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
