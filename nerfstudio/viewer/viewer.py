@@ -74,7 +74,7 @@ def toggle_updating():
 def finalSync(client, target_client):
         CONSOLE.print("final")
         #Final adjustment to the camera position
-        if client.camera.position != target_client.camera.position or client.camera.wxyz != target_client.camera.wxyz:
+        if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
             toggle_updating()
             CONSOLE.print("final sync")
             target_client.camera.position = client.camera.position
