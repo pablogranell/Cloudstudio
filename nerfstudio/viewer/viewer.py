@@ -58,6 +58,7 @@ updating = False
 syncThreads = []
 sync_lock = threading.Lock()
 move_lock = threading.Lock()
+final_lock = threading.Lock()
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -65,16 +66,14 @@ def toggle_sincronizacion():
     CONSOLE.print(f"Sincronizacion: {sincronizacion}")
 
 def reset_updating():
-    global updating
     with move_lock:
+        global updating
         updating = False
-    #CONSOLE.print(f"reset updating, now: {updating}")
 
 def toggle_updating():
-    global updating
     with move_lock:
+        global updating
         updating = True
-    #CONSOLE.print(f"updating: {updating}")
 
 def finalSync(client, target_client):
         #Final adjustment to the camera position
@@ -82,7 +81,6 @@ def finalSync(client, target_client):
             toggle_updating()
             target_client.camera.position = client.camera.position
             target_client.camera.wxyz = client.camera.wxyz
-            #threading.Timer(0.4, reset_updating).start()
             reset_updating()
 
 @decorate_all([check_main_thread])
@@ -321,29 +319,29 @@ class Viewer:
     def sync_camera(self, client: viser.ClientHandle) -> None:
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            if updating:
-                return
-            if sincronizacion:
-                clients = self.viser_server.get_clients()
-                if len(clients) > 1:
-                    for id in clients:
-                        if id != client.client_id:
-                            self.last_move_time = time.time()
-                            with self.viser_server.atomic():
-                                camera_state = self.get_camera_state(client)
-                                toggle_updating()
-                                self.render_statemachines[id].action(RenderAction("move", camera_state))
-                                clients[id].camera.position = client.camera.position
-                                clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.2, reset_updating).start()
-                                with sync_lock:
-                                    
-                                    for thread in syncThreads:
-                                        thread.cancel()
-                                        syncThreads.clear()
-                                    sync_thread = threading.Timer(0.6, finalSync, args=[client, clients[id]])
-                                    sync_thread.start()
-                                    syncThreads.append(sync_thread)                   
+            with sync_lock:
+                if updating:
+                    return
+                if sincronizacion:
+                    clients = self.viser_server.get_clients()
+                    if len(clients) > 1:
+                        for id in clients:
+                            if id != client.client_id:
+                                self.last_move_time = time.time()
+                                with self.viser_server.atomic():
+                                    camera_state = self.get_camera_state(client)
+                                    toggle_updating()
+                                    self.render_statemachines[id].action(RenderAction("move", camera_state))
+                                    clients[id].camera.position = client.camera.position
+                                    clients[id].camera.wxyz = client.camera.wxyz
+                                    threading.Timer(0.2, reset_updating).start()
+                                    with final_lock:
+                                        for thread in syncThreads:
+                                            thread.cancel()
+                                            syncThreads.clear()
+                                        sync_thread = threading.Timer(0.7, finalSync, args=[client, clients[id]])
+                                        sync_thread.start()
+                                        syncThreads.append(sync_thread)
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
