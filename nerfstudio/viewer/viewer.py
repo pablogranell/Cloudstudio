@@ -80,6 +80,7 @@ def finalSync(client, target_client):
             target_client.camera.position = client.camera.position
             target_client.camera.wxyz = client.camera.wxyz
             #threading.Timer(0.4, reset_updating).start()
+            reset_updating()
 
 @decorate_all([check_main_thread])
 class Viewer:
