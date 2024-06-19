@@ -317,25 +317,26 @@ class Viewer:
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
     def sync_camera(self, client: viser.ClientHandle) -> None:
+        
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            with sync_lock:
-                if updating:
-                    return
-                if sincronizacion:
-                    clients = self.viser_server.get_clients()
-                    if len(clients) > 1:
-                        for id in clients:
-                            if id != client.client_id:
-                                self.last_move_time = time.time()
-                                with self.viser_server.atomic():
-                                    camera_state = self.get_camera_state(client)
-                                    toggle_updating()
-                                    self.render_statemachines[id].action(RenderAction("move", camera_state))
-                                    clients[id].camera.position = client.camera.position
-                                    clients[id].camera.wxyz = client.camera.wxyz
-                                    threading.Timer(0.2, reset_updating).start()
-                                    with final_lock:
+                with sync_lock:
+                    #if updating:
+                    #    return
+                    if sincronizacion:
+                        clients = self.viser_server.get_clients()
+                        if len(clients) > 1:
+                            for id in clients:
+                                if id != client.client_id:
+                                    self.last_move_time = time.time()
+                                    with self.viser_server.atomic():
+                                        camera_state = self.get_camera_state(client)
+                                        toggle_updating()
+                                        self.render_statemachines[id].action(RenderAction("move", camera_state))
+                                        clients[id].camera.position = client.camera.position
+                                        clients[id].camera.wxyz = client.camera.wxyz
+                                        threading.Timer(0.2, reset_updating).start()
+                                        #with final_lock:
                                         for thread in syncThreads:
                                             thread.cancel()
                                             syncThreads.clear()
