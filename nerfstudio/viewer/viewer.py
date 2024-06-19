@@ -57,6 +57,7 @@ sincronizacion = False
 updating = False
 syncThreads = []
 sync_lock = threading.Lock()
+move_lock = threading.Lock()
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -332,7 +333,8 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.3, reset_updating).start()
+                                with move_lock:
+                                    threading.Timer(0.3, reset_updating).start()
                                 with sync_lock:
                                     
                                     for thread in syncThreads:
