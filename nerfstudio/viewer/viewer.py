@@ -66,12 +66,14 @@ def toggle_sincronizacion():
 
 def reset_updating():
     global updating
-    updating = False
+    with move_lock:
+        updating = False
     #CONSOLE.print(f"reset updating, now: {updating}")
 
 def toggle_updating():
     global updating
-    updating = True
+    with move_lock:
+        updating = True
     #CONSOLE.print(f"updating: {updating}")
 
 def finalSync(client, target_client):
@@ -333,8 +335,7 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                with move_lock:
-                                    threading.Timer(0.3, reset_updating).start()
+                                threading.Timer(0.35, reset_updating).start()
                                 with sync_lock:
                                     
                                     for thread in syncThreads:
