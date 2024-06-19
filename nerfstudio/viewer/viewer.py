@@ -56,7 +56,6 @@ VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
 updating = False
 syncThreads = []
-sync_lock = threading.Lock()
 move_lock = threading.Lock()
 final_lock = threading.Lock()
 
@@ -328,7 +327,7 @@ class Viewer:
                     for id in clients:
                         if id != client.client_id:
                             self.last_move_time = time.time()
-                            with self.viser_server.atomic() and sync_lock:
+                            with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(client)
                                 toggle_updating()
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
