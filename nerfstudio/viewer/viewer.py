@@ -338,7 +338,7 @@ class Viewer:
                                     for thread in syncThreads:
                                         thread.cancel()
                                         syncThreads.clear()
-                                    sync_thread = threading.Timer(0.7, finalSync, args=[client, clients[id]])
+                                    sync_thread = threading.Timer(0.5, finalSync, args=[client, clients[id]])
                                     sync_thread.start()
                                     syncThreads.append(sync_thread)
 
