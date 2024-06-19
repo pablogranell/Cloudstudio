@@ -26,6 +26,7 @@ import numpy as np
 import torch
 from nerfstudio.utils.rich_utils import CONSOLE
 import viser
+import threading
 import viser.theme
 import viser.transforms as vtf
 from typing_extensions import assert_never
@@ -293,25 +294,29 @@ class Viewer:
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
     def sync_camera(self, client: viser.ClientHandle) -> None:
+        updating = False
+
+        def reset_updating():
+            updating = False
+
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
+            if updating:
+                return 
             if sincronizacion:
                 clients = self.viser_server.get_clients()
                 if len(clients) > 1:
                     for id in clients:
                         if id != client.client_id:
-                            if not self.ready:
-                                return
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
                                 camera_state = self.get_camera_state(client)
-                                self.render_statemachines[id].running = False
-                                self.render_statemachines[id].action(RenderAction("static", camera_state))
+                                updating = True
+                                print("aaa"+updating)
+                                self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                #sets the state of other clients to not trigger camera.on_update
-                                
-
+                                threading.Timer(0.5, reset_updating).start()
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
