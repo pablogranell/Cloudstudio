@@ -333,12 +333,12 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = client.camera.position
                                 clients[id].camera.wxyz = client.camera.wxyz
-                                #threading.Timer(0.33, reset_updating).start()
+                                threading.Timer(0.4, reset_updating).start()
                                 with final_lock:
                                     for thread in syncThreads:
                                         thread.cancel()
                                         syncThreads.clear()
-                                    sync_thread = threading.Timer(0.33, finalSync, args=[client, clients[id]])
+                                    sync_thread = threading.Timer(0.7, finalSync, args=[client, clients[id]])
                                     sync_thread.start()
                                     syncThreads.append(sync_thread)
 
