@@ -74,13 +74,14 @@ def toggle_updating():
         global updating
         updating = True
 
-def finalSync(client, target_client):
+def finalSync(self, client, target_client):
         #Final adjustment to the camera position
-        if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
-            toggle_updating()
-            target_client.camera.position = client.camera.position
-            target_client.camera.wxyz = client.camera.wxyz
-            reset_updating()
+        with self.viser_server.atomic():
+            if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
+                toggle_updating()
+                target_client.camera.position = client.camera.position
+                target_client.camera.wxyz = client.camera.wxyz
+                reset_updating()
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -338,7 +339,7 @@ class Viewer:
                                     for thread in syncThreads:
                                         thread.cancel()
                                         syncThreads.clear()
-                                    sync_thread = threading.Timer(0.7, finalSync, args=[client, clients[id]])
+                                    sync_thread = threading.Timer(0.7, self.finalSync, args=[client, clients[id]])
                                     sync_thread.start()
                                     syncThreads.append(sync_thread)
 
