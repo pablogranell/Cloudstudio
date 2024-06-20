@@ -20,7 +20,7 @@ import contextlib
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List,Any, Literal, Optional
+from typing import TYPE_CHECKING, Dict, List, Literal, Optional
 
 import numpy as np
 import torch
@@ -54,83 +54,33 @@ if TYPE_CHECKING:
 
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
-SYNC_INTERVAL = 0.2
+updating = False
+syncThreads = []
+move_lock = threading.Lock()
+final_lock = threading.Lock()
 
 def toggle_sincronizacion():
     global sincronizacion
     sincronizacion = not sincronizacion
     CONSOLE.print(f"Sincronizacion: {sincronizacion}")
 
-class CameraSync:
-    def __init__(self, viewer):
-        self.viewer = viewer
-        self.sync_lock = threading.Lock()
-        self.last_update_time: Dict[int, float] = {}
-        self.last_position: Dict[int, np.ndarray] = {}
-        self.last_rotation: Dict[int, np.ndarray] = {}
-        self.update_origin: Dict[int, str] = {}  # Marca de origen de la actualización
-        self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
-        self.sync_thread.start()
-        self.update_threshold = 0  # Umbral para considerar un cambio significativo
-        
+def reset_updating():
+    with move_lock:
+        global updating
+        updating = False
 
-    def _sync_loop(self):
-        while True:
-            time.sleep(SYNC_INTERVAL)
-            if sincronizacion:
-                with self.sync_lock:
-                    self._perform_sync()
+def toggle_updating():
+    with move_lock:
+        global updating
+        updating = True
 
-    def _perform_sync(self):
-        clients = self.viewer.viser_server.get_clients()
-        if len(clients) <= 1:
-            return
-
-        current_time = time.time()
-        latest_client_id = max(self.last_update_time, key=self.last_update_time.get, default=None)
-        if latest_client_id is None:
-            return
-
-        latest_position = self.last_position[latest_client_id]
-        latest_rotation = self.last_rotation[latest_client_id]
-
-        for client_id, client in clients.items():
-            if client_id == latest_client_id:
-                continue
-
-            position_change = np.linalg.norm(client.camera.position - latest_position)
-            rotation_change = np.linalg.norm(client.camera.wxyz - latest_rotation)
-
-            if position_change > self.update_threshold or rotation_change > self.update_threshold:
-                self.update_origin[client_id] = "sync"  # Marca la actualización como originada por la sincronización
-                client.camera.position = latest_position
-                client.camera.wxyz = latest_rotation
-                self.last_update_time[client_id] = current_time
-                self.update_origin[client_id] = "user"  # Restablece la marca de origen después de la sincronización
-
-    def on_camera_update(self, client):
-        @client.camera.on_update
-        def _(camera: Any):
-            if sincronizacion:
-                with self.sync_lock:
-                    if self.update_origin.get(client.client_id) == "sync":
-                        return  # Ignora las actualizaciones originadas por la sincronización
-
-                    current_time = time.time()
-                    if client.client_id in self.last_update_time:
-                        time_since_last_update = current_time - self.last_update_time[client.client_id]
-                        if time_since_last_update < SYNC_INTERVAL:
-                            return  # Ignora actualizaciones demasiado frecuentes
-
-                    position_change = np.linalg.norm(np.array(camera.position) - self.last_position.get(client.client_id, np.array([0, 0, 0])))
-                    rotation_change = np.linalg.norm(np.array(camera.wxyz) - self.last_rotation.get(client.client_id, np.array([1, 0, 0, 0])))
-
-                    if position_change > self.update_threshold or rotation_change > self.update_threshold:
-                        self.last_update_time[client.client_id] = current_time
-                        self.last_position[client.client_id] = np.array(camera.position)
-                        self.last_rotation[client.client_id] = np.array(camera.wxyz)
-                        self.update_origin[client.client_id] = "user"  # Marca la actualización como originada por el usuario
-                        self._perform_sync()
+def finalSync(client, target_client):
+        #Final adjustment to the camera position
+        if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
+            toggle_updating()
+            target_client.camera.position = client.camera.position
+            target_client.camera.wxyz = client.camera.wxyz
+            reset_updating()
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -187,9 +137,6 @@ class Viewer:
         self.last_move_time = 0
 
         self.viser_server = viser.ViserServer(host=config.websocket_host, port=websocket_port)
-        self.camera_sync = CameraSync(self)
-        self.viser_server.on_client_connect(self.camera_sync.on_camera_update)
-
         # Set the name of the URL either to the share link if available, or the localhost
         share_url = None
         if share:
@@ -219,7 +166,7 @@ class Viewer:
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
-        #self.viser_server.on_client_connect(self.sync_camera)
+        self.viser_server.on_client_connect(self.sync_camera)
         #self.viser_server.on_client_connect(self.set_camera_visibility(False))
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
@@ -368,7 +315,7 @@ class Viewer:
         self.sync_camera.visible = not self.sync_camera.visible
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
-    '''def sync_camera(self, client: viser.ClientHandle) -> None:
+    def sync_camera(self, client: viser.ClientHandle) -> None:
         
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
@@ -393,7 +340,7 @@ class Viewer:
                                         syncThreads.clear()
                                     sync_thread = threading.Timer(0.7, finalSync, args=[client, clients[id]])
                                     sync_thread.start()
-                                    syncThreads.append(sync_thread)'''
+                                    syncThreads.append(sync_thread)
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
