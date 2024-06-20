@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
-SYNC_INTERVAL = 0.05  # 50ms
+SYNC_INTERVAL = 0.2
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -71,7 +71,7 @@ class CameraSync:
         self.update_origin: Dict[int, str] = {}  # Marca de origen de la actualización
         self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
         self.sync_thread.start()
-        self.update_threshold = 0.01  # Umbral para considerar un cambio significativo
+        self.update_threshold = 0  # Umbral para considerar un cambio significativo
         
 
     def _sync_loop(self):
@@ -97,7 +97,7 @@ class CameraSync:
         for client_id, client in clients.items():
             if client_id == latest_client_id:
                 continue
-            
+
             position_change = np.linalg.norm(client.camera.position - latest_position)
             rotation_change = np.linalg.norm(client.camera.wxyz - latest_rotation)
 
@@ -105,6 +105,7 @@ class CameraSync:
                 self.update_origin[client_id] = "sync"  # Marca la actualización como originada por la sincronización
                 client.camera.position = latest_position
                 client.camera.wxyz = latest_rotation
+                self.last_update_time[client_id] = current_time
                 self.update_origin[client_id] = "user"  # Restablece la marca de origen después de la sincronización
 
     def on_camera_update(self, client):
