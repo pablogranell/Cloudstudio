@@ -62,8 +62,8 @@ def toggle_sincronizacion():
     CONSOLE.print(f"Sincronizacion: {sincronizacion}")
 
 class CameraSync:
-    def __init__(self, viser_server):
-        self.viser_server = viser_server
+    def __init__(self, viewer):
+        self.viewer = viewer
         self.sync_lock = threading.Lock()
         self.last_update_time: Dict[int, float] = {}
         self.last_position: Dict[int, np.ndarray] = {}
@@ -79,7 +79,7 @@ class CameraSync:
                     self._perform_sync()
 
     def _perform_sync(self):
-        clients = self.viser_server.get_clients()
+        clients = self.viewer.viser_server.get_clients()
         if len(clients) <= 1:
             return
 
@@ -148,8 +148,6 @@ class Viewer:
         self.log_filename = log_filename
         self.datapath = datapath.parent if datapath.is_file() else datapath
         self.include_time = self.pipeline.datamanager.includes_time
-        self.camera_sync = CameraSync(self.viser_server)
-        self.viser_server.on_client_connect(self.camera_sync.on_camera_update)
 
         if self.config.websocket_port is None:
             websocket_port = viewer_utils.get_free_port(default_port=self.config.websocket_port_default)
@@ -166,6 +164,9 @@ class Viewer:
         self.last_move_time = 0
 
         self.viser_server = viser.ViserServer(host=config.websocket_host, port=websocket_port)
+        self.camera_sync = CameraSync(self)
+        self.viser_server.on_client_connect(self.camera_sync.on_camera_update)
+
         # Set the name of the URL either to the share link if available, or the localhost
         share_url = None
         if share:
