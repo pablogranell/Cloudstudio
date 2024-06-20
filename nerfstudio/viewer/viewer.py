@@ -70,6 +70,8 @@ class CameraSync:
         self.last_rotation: Dict[int, np.ndarray] = {}
         self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
         self.sync_thread.start()
+        self.sync_enabled = True
+        self.update_threshold = 0.01  # Umbral para considerar un cambio significativo
 
     def _sync_loop(self):
         while True:
@@ -94,8 +96,11 @@ class CameraSync:
         for client_id, client in clients.items():
             if client_id == latest_client_id:
                 continue
+            
+            position_change = np.linalg.norm(client.camera.position - latest_position)
+            rotation_change = np.linalg.norm(client.camera.wxyz - latest_rotation)
 
-            if np.any(client.camera.position != latest_position) or np.any(client.camera.wxyz != latest_rotation):
+            if position_change > self.update_threshold or rotation_change > self.update_threshold:
                 client.camera.position = latest_position
                 client.camera.wxyz = latest_rotation
 
@@ -104,10 +109,20 @@ class CameraSync:
         def _(camera: Any):
             if sincronizacion:
                 with self.sync_lock:
-                    self.last_update_time[client.client_id] = time.time()
-                    self.last_position[client.client_id] = np.array(camera.position)
-                    self.last_rotation[client.client_id] = np.array(camera.wxyz)
-                    self._perform_sync()
+                    current_time = time.time()
+                    if client.client_id in self.last_update_time:
+                        time_since_last_update = current_time - self.last_update_time[client.client_id]
+                        if time_since_last_update < SYNC_INTERVAL:
+                            return  # Ignora actualizaciones demasiado frecuentes
+
+                    position_change = np.linalg.norm(np.array(camera.position) - self.last_position.get(client.client_id, np.array([0, 0, 0])))
+                    rotation_change = np.linalg.norm(np.array(camera.wxyz) - self.last_rotation.get(client.client_id, np.array([1, 0, 0, 0])))
+
+                    if position_change > self.update_threshold or rotation_change > self.update_threshold:
+                        self.last_update_time[client.client_id] = current_time
+                        self.last_position[client.client_id] = np.array(camera.position)
+                        self.last_rotation[client.client_id] = np.array(camera.wxyz)
+                        self._perform_sync()
 
 @decorate_all([check_main_thread])
 class Viewer:
