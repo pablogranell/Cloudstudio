@@ -68,10 +68,11 @@ class CameraSync:
         self.last_update_time: Dict[int, float] = {}
         self.last_position: Dict[int, np.ndarray] = {}
         self.last_rotation: Dict[int, np.ndarray] = {}
+        self.update_origin: Dict[int, str] = {}  # Marca de origen de la actualización
         self.sync_thread = threading.Thread(target=self._sync_loop, daemon=True)
         self.sync_thread.start()
-        self.sync_enabled = True
         self.update_threshold = 0.01  # Umbral para considerar un cambio significativo
+        
 
     def _sync_loop(self):
         while True:
@@ -101,14 +102,19 @@ class CameraSync:
             rotation_change = np.linalg.norm(client.camera.wxyz - latest_rotation)
 
             if position_change > self.update_threshold or rotation_change > self.update_threshold:
+                self.update_origin[client_id] = "sync"  # Marca la actualización como originada por la sincronización
                 client.camera.position = latest_position
                 client.camera.wxyz = latest_rotation
+                self.update_origin[client_id] = "user"  # Restablece la marca de origen después de la sincronización
 
     def on_camera_update(self, client):
         @client.camera.on_update
         def _(camera: Any):
             if sincronizacion:
                 with self.sync_lock:
+                    if self.update_origin.get(client.client_id) == "sync":
+                        return  # Ignora las actualizaciones originadas por la sincronización
+
                     current_time = time.time()
                     if client.client_id in self.last_update_time:
                         time_since_last_update = current_time - self.last_update_time[client.client_id]
@@ -122,6 +128,7 @@ class CameraSync:
                         self.last_update_time[client.client_id] = current_time
                         self.last_position[client.client_id] = np.array(camera.position)
                         self.last_rotation[client.client_id] = np.array(camera.wxyz)
+                        self.update_origin[client.client_id] = "user"  # Marca la actualización como originada por el usuario
                         self._perform_sync()
 
 @decorate_all([check_main_thread])
