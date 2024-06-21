@@ -198,9 +198,9 @@ class Viewer:
         #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
         #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
         #self.show_images.visible = False
-        clientdown = self.make_client_stats_markdown(clientInfo=None)
-        self.clientInfo = self.viser_server.add_gui_markdown(clientdown)
-        mkdown = self.make_stats_markdown(0, "0x0px")
+        #clientdown = self.make_client_stats_markdown(clientInfo=None)
+        #self.clientInfo = self.viser_server.add_gui_markdown(clientdown)
+        mkdown = self.make_stats_markdown(0, "0x0px", 0, 0)
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
         control_tab = tabs.add_tab("Ajustes", viser.Icon.SETTINGS)
@@ -327,32 +327,30 @@ class Viewer:
     def get_Client(self, client: viser.ClientHandle) -> None:
         clientN = client.client_id
 
-    def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
+    def make_stats_markdown(self, step: Optional[int], res: Optional[str], controladora: Optional[int], cliente: Optional[int]) -> str:
         # if either are None, read it from the current stats_markdown content
         if step is None:
             step = int(self.stats_markdown.content.split("\n")[0].split(": ")[1])
+        CONSOLE.print(f"Step: {step}")
         if res is None:
             res = (self.stats_markdown.content.split("\n")[1].split(": ")[1]).strip()
-        return f"Step: {step}  \nResolution: {res}"
+        CONSOLE.print(f"Resolution: {res}")
+        if controladora is None:
+            controladora = int(self.stats_markdown.content.split("\n")[2].split(": ")[1])
+        CONSOLE.print(f"Controladora: {controladora}")
+        if cliente is None:
+            cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
+        CONSOLE.print(f"Cliente: {cliente}")
 
-    def make_client_stats_markdown(self, clientInfo) -> str:
-        if clientInfo is None:
-            texto = clientInfo.content.split("\n")[0]
-            numCliente = clientInfo.content.split("\n")[1].split(": ")[1]
-            controlador = clientInfo.content.split("\n")[2].split(": ")[1]
-        if sincronizacion:
-            texto = "Sincronizacion Activada\n"
-        else:
-            texto = "Sincronizacion Desactivada\n"
-        return f"{texto}Cliente: {numCliente} \nControlador: {controlador}"
+        return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nCliente: {cliente}"
     
     def update_step(self, step):
         """
         Args:
             step: the train step to set the model to
         """
-        self.stats_markdown.content = self.make_stats_markdown(step, None)
-        self.clientInfo.content = self.make_client_stats_markdown()
+        self.stats_markdown.content = self.make_stats_markdown(step, None, control, clientN)
+        #self.clientInfo.content = self.make_client_stats_markdown()
 
     def get_camera_state(self, client: viser.ClientHandle) -> CameraState:
         R = vtf.SO3(wxyz=client.camera.wxyz)
