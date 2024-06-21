@@ -26,7 +26,6 @@ import numpy as np
 import torch
 from nerfstudio.utils.rich_utils import CONSOLE
 import viser
-import threading
 import viser.theme
 import viser.transforms as vtf
 from typing_extensions import assert_never
@@ -54,34 +53,20 @@ if TYPE_CHECKING:
 
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
-updating = False
-syncThreads = []
-move_lock = threading.Lock()
-final_lock = threading.Lock()
+control = 0
+clientN = 0
 
 def toggle_sincronizacion():
     global sincronizacion
     sincronizacion = not sincronizacion
     CONSOLE.print(f"Sincronizacion: {sincronizacion}")
 
-def reset_updating():
-    with move_lock:
-        global updating
-        updating = False
-
-def toggle_updating():
-    with move_lock:
-        global updating
-        updating = True
-
-def finalSync(self, client, target_client):
-        #Final adjustment to the camera position
-        with self.viser_server.atomic():
-            if not np.array_equal(client.camera.position, target_client.camera.position) or not np.array_equal(client.camera.wxyz, target_client.camera.wxyz):
-                toggle_updating()
-                target_client.camera.position = client.camera.position
-                target_client.camera.wxyz = client.camera.wxyz
-                reset_updating()
+def toggle_control(num_clientes):
+    global control
+    control += 1
+    if control >= num_clientes:
+        control = 0
+    CONSOLE.print(f"Control: {control}")
 
 @decorate_all([check_main_thread])
 class Viewer:
@@ -168,7 +153,7 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        #self.viser_server.on_client_connect(self.set_camera_visibility(False))
+        self.viser_server.on_client_connect(self.get_Client)
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pausar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -195,6 +180,12 @@ class Viewer:
         self.disable_sync_camera.on_click(lambda _: toggle_sincronizacion())
         self.disable_sync_camera.visible = False
 
+        # Add button to change control to other clients
+        self.change_control = self.viser_server.add_gui_button(
+            label="Cambiar Control", disabled=False, icon=viser.Icon.CAMERA_ROTATE
+        )
+        self.change_control.on_click(lambda _: toggle_control(len(self.viser_server.get_clients())))
+
         # Add buttons to toggle training image visibility
         #self.hide_images = self.viser_server.add_gui_button(
         #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
@@ -207,10 +198,12 @@ class Viewer:
         #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
         #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
         #self.show_images.visible = False
+        clientdown = self.make_client_stats_markdown()
+        self.clientInfo = self.viser_server.add_gui_markdown(clientdown)
         mkdown = self.make_stats_markdown(0, "0x0px")
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
-        control_tab = tabs.add_tab("Control", viser.Icon.SETTINGS)
+        control_tab = tabs.add_tab("Ajustes", viser.Icon.SETTINGS)
         with control_tab:
             self.control_panel = ControlPanel(
                 self.viser_server,
@@ -317,31 +310,22 @@ class Viewer:
         self.disable_sync_camera.visible = not self.disable_sync_camera.visible
 
     def sync_camera(self, client: viser.ClientHandle) -> None:
-        
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
-            if updating:
-                return
             if sincronizacion:
                 clients = self.viser_server.get_clients()
-                if len(clients) > 1:
+                if client.client_id == control and len(clients) > 1:
                     for id in clients:
-                        if id != client.client_id:
+                        if id != control:
                             self.last_move_time = time.time()
                             with self.viser_server.atomic():
-                                camera_state = self.get_camera_state(client)
-                                toggle_updating()
+                                camera_state = self.get_camera_state(clients[control])
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
-                                clients[id].camera.position = client.camera.position
-                                clients[id].camera.wxyz = client.camera.wxyz
-                                threading.Timer(0.4, reset_updating).start()
-                                with final_lock:
-                                    for thread in syncThreads:
-                                        thread.cancel()
-                                        syncThreads.clear()
-                                    sync_thread = threading.Timer(0.7, self.finalSync, args=[client, clients[id]])
-                                    sync_thread.start()
-                                    syncThreads.append(sync_thread)
+                                clients[id].camera.position = clients[control].camera.position
+                                clients[id].camera.wxyz = clients[control].camera.wxyz
+
+    def get_Client(self, client: viser.ClientHandle) -> None:
+        clientN = client.client_id
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str]) -> str:
         # if either are None, read it from the current stats_markdown content
@@ -351,6 +335,14 @@ class Viewer:
             res = (self.stats_markdown.content.split("\n")[1].split(": ")[1]).strip()
         return f"Step: {step}  \nResolution: {res}"
 
+    def make_client_stats_markdown(self) -> str:
+        id = clientN
+        if sincronizacion:
+            texto = "Sincronizando"
+        else:
+            texto = "No sincronizando"
+        return f"{texto}\nCliente: {id} \nControlador: {control}"
+    
     def update_step(self, step):
         """
         Args:
