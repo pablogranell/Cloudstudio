@@ -278,7 +278,7 @@ class Viewer:
                                 clients[id].camera.position = clients[control].camera.position
                                 clients[id].camera.wxyz = clients[control].camera.wxyz
 
-    def get_Client(self, client: viser.ClientHandle) -> int:
+    def get_client(self, client: viser.ClientHandle) -> int:
         if client.client_id not in self.client_ids:
             self.client_ids[client.client_id] = self.next_client_id
             self.next_client_id += 1
