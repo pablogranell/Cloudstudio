@@ -337,9 +337,9 @@ class Viewer:
 
     def make_client_stats_markdown(self, clientInfo) -> str:
         if clientInfo is None:
-            texto = self.clientInfo.content.split("\n")[0]
-            numCliente = self.clientInfo.content.split("\n")[1].split(": ")[1]
-            controlador = self.clientInfo.content.split("\n")[2].split(": ")[1]
+            texto = clientInfo.content.split("\n")[0]
+            numCliente = clientInfo.content.split("\n")[1].split(": ")[1]
+            controlador = clientInfo.content.split("\n")[2].split(": ")[1]
         if sincronizacion:
             texto = "Sincronizacion Activada\n"
         else:
