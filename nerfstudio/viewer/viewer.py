@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 VISER_NERFSTUDIO_SCALE_RATIO: float = 10.0
 sincronizacion = False
 control = 0
-clientN = 0
+
 
 def toggle_sincronizacion():
     global sincronizacion
@@ -97,6 +97,7 @@ class Viewer:
         trainer: Optional[Trainer] = None,
         train_lock: Optional[threading.Lock] = None,
         share: bool = False,
+        clientN = 0,
     ):
         self.ready = False  # Set to True at end of constructor.
         self.config = config
@@ -107,6 +108,7 @@ class Viewer:
         self.log_filename = log_filename
         self.datapath = datapath.parent if datapath.is_file() else datapath
         self.include_time = self.pipeline.datamanager.includes_time
+        self.clientN = clientN
 
         if self.config.websocket_port is None:
             websocket_port = viewer_utils.get_free_port(default_port=self.config.websocket_port_default)
@@ -324,24 +326,24 @@ class Viewer:
                                 clients[id].camera.position = clients[control].camera.position
                                 clients[id].camera.wxyz = clients[control].camera.wxyz
 
-    def get_Client(self, client: viser.ClientHandle) -> None:
+    def get_Client(self, client: viser.ClientHandle) -> int:
         clientN = client.client_id
+        return clientN
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str], controladora: Optional[int], cliente: Optional[int]) -> str:
         # if either are None, read it from the current stats_markdown content
         if step is None:
             step = int(self.stats_markdown.content.split("\n")[0].split(": ")[1])
-        CONSOLE.print(f"Step: {step}")
         if res is None:
             res = (self.stats_markdown.content.split("\n")[1].split(": ")[1]).strip()
-        CONSOLE.print(f"Resolution: {res}")
         if controladora is None:
             controladora = int(self.stats_markdown.content.split("\n")[2].split(": ")[1])
-        CONSOLE.print(f"Controladora: {controladora}")
+            CONSOLE.print(f"Controladora: {controladora}")
         if cliente is None:
             cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
-        CONSOLE.print(f"Cliente: {cliente}")
-
+            CONSOLE.print(f"Cliente: {cliente}")
+        controladora = control
+        cliente = self.clientN
         return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nCliente: {cliente}"
     
     def update_step(self, step):
@@ -349,8 +351,9 @@ class Viewer:
         Args:
             step: the train step to set the model to
         """
-        self.stats_markdown.content = self.make_stats_markdown(step, None, control, clientN)
-        #self.clientInfo.content = self.make_client_stats_markdown()
+        control = control
+        cliente = self.clientN
+        self.stats_markdown.content = self.make_stats_markdown(step, None, control, cliente)
 
     def get_camera_state(self, client: viser.ClientHandle) -> CameraState:
         R = vtf.SO3(wxyz=client.camera.wxyz)
@@ -373,6 +376,7 @@ class Viewer:
     def handle_new_client(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
+        self.clientN = self.get_Client(client=client)
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
             if not self.ready:
