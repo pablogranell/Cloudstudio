@@ -336,12 +336,15 @@ class Viewer:
         return f"Step: {step}  \nResolution: {res}"
 
     def make_client_stats_markdown(self) -> str:
-        id = clientN
+        if self.clientInfo.content is None:
+            texto = self.clientInfo.content.split("\n")[0]
+            numCliente = self.clientInfo.content.split("\n")[1].split(": ")[1]
+            controlador = self.clientInfo.content.split("\n")[2].split(": ")[1]
         if sincronizacion:
-            texto = "Sincronizando"
+            texto = "Sincronizacion Activada\n"
         else:
-            texto = "No sincronizando"
-        return f"{texto}\nCliente: {id} \nControlador: {control}"
+            texto = "Sincronizacion Desactivada\n"
+        return f"{texto}Cliente: {numCliente} \nControlador: {controlador}"
     
     def update_step(self, step):
         """
@@ -349,6 +352,7 @@ class Viewer:
             step: the train step to set the model to
         """
         self.stats_markdown.content = self.make_stats_markdown(step, None)
+        self.clientInfo.content = self.make_client_stats_markdown()
 
     def get_camera_state(self, client: viser.ClientHandle) -> CameraState:
         R = vtf.SO3(wxyz=client.camera.wxyz)
