@@ -336,7 +336,7 @@ class Viewer:
         return f"Step: {step}  \nResolution: {res}"
 
     def make_client_stats_markdown(self, clientInfo) -> str:
-        if clientInfo.content is None:
+        if clientInfo is None:
             texto = self.clientInfo.content.split("\n")[0]
             numCliente = self.clientInfo.content.split("\n")[1].split(": ")[1]
             controlador = self.clientInfo.content.split("\n")[2].split(": ")[1]
