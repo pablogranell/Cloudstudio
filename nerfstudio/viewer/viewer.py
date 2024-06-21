@@ -320,7 +320,9 @@ class Viewer:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
         self.clientN = client.client_id
+        clients = self.viser_server.get_clients()
         CONSOLE.print(f"ClienteAAAAAAAAAAAA: {self.clientN}")
+        CONSOLE.print(f"Clientes: {clients}")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
             if not self.ready:
