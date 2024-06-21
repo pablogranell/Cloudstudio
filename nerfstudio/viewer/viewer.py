@@ -198,7 +198,7 @@ class Viewer:
         #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
         #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
         #self.show_images.visible = False
-        clientdown = self.make_client_stats_markdown()
+        clientdown = self.make_client_stats_markdown(clientInfo=None)
         self.clientInfo = self.viser_server.add_gui_markdown(clientdown)
         mkdown = self.make_stats_markdown(0, "0x0px")
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
@@ -335,8 +335,8 @@ class Viewer:
             res = (self.stats_markdown.content.split("\n")[1].split(": ")[1]).strip()
         return f"Step: {step}  \nResolution: {res}"
 
-    def make_client_stats_markdown(self) -> str:
-        if self.clientInfo.content is None:
+    def make_client_stats_markdown(self, clientInfo) -> str:
+        if clientInfo.content is None:
             texto = self.clientInfo.content.split("\n")[0]
             numCliente = self.clientInfo.content.split("\n")[1].split(": ")[1]
             controlador = self.clientInfo.content.split("\n")[2].split(": ")[1]
