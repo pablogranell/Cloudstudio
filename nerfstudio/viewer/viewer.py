@@ -1,17 +1,3 @@
-# Copyright 2022 the Regents of the University of California, Nerfstudio Team and contributors. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 """Manage the state of the viewer"""
 
 from __future__ import annotations
@@ -187,21 +173,6 @@ class Viewer:
             label="Cambiar Control", disabled=False, icon=viser.Icon.CAMERA_ROTATE
         )
         self.change_control.on_click(lambda _: toggle_control(len(self.viser_server.get_clients())))
-
-        # Add buttons to toggle training image visibility
-        #self.hide_images = self.viser_server.add_gui_button(
-        #    label="Hide Train Cams", disabled=False, icon=viser.Icon.EYE_OFF, color=None
-        #)
-        
-        #self.hide_images.on_click(lambda _: self.set_camera_visibility(False))
-        #self.show_images = self.viser_server.add_gui_button(
-        #    label="Show Train Cams", disabled=False, icon=viser.Icon.EYE, color=None
-        #)
-        #self.show_images.on_click(lambda _: self.set_camera_visibility(True))
-        #self.show_images.on_click(lambda _: self.toggle_cameravis_button())
-        #self.show_images.visible = False
-        #clientdown = self.make_client_stats_markdown(clientInfo=None)
-        #self.clientInfo = self.viser_server.add_gui_markdown(clientdown)
         mkdown = self.make_stats_markdown(0, "0x0px", 0, 0)
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
@@ -217,15 +188,6 @@ class Viewer:
                 default_composite_depth=self.config.default_composite_depth,
             )
         config_path = self.log_filename.parents[0] / "config.yml"
-        #with tabs.add_tab("Render", viser.Icon.CAMERA):
-        #    self.render_tab_state = populate_render_tab(
-        #        self.viser_server, config_path, self.datapath, self.control_panel
-        #    )
-
-        #with tabs.add_tab("Export", viser.Icon.PACKAGE_EXPORT):
-        #    populate_export_tab(self.viser_server, self.control_panel, config_path, self.pipeline.model)
-
-        # Keep track of the pointers to generated GUI folders, because each generated folder holds a unique ID.
         viewer_gui_folders = dict()
 
         def prev_cb_wrapper(prev_cb):
@@ -245,18 +207,6 @@ class Viewer:
                 prev_cb = element.cb_hook
                 element.cb_hook = lambda element: [prev_cb_wrapper(prev_cb)(element), self._trigger_rerender()]
             else:
-                # recursively create folders
-                # If the folder name is "Custom Elements/a/b", then:
-                #   in the beginning: folder_path will be
-                #       "/".join([] + ["Custom Elements"]) --> "Custom Elements"
-                #   later, folder_path will be
-                #       "/".join(["Custom Elements"] + ["a"]) --> "Custom Elements/a"
-                #       "/".join(["Custom Elements", "a"] + ["b"]) --> "Custom Elements/a/b"
-                #  --> the element will be installed in the folder "Custom Elements/a/b"
-                #
-                # Note that the gui_folder is created only when the folder is not in viewer_gui_folders,
-                # and we use the folder_path as the key to check if the folder is already created.
-                # Otherwise, use the existing folder as context manager.
                 folder_path = "/".join(prev_labels + [folder_labels[0]])
                 if folder_path not in viewer_gui_folders:
                     viewer_gui_folders[folder_path] = self.viser_server.add_gui_folder(folder_labels[0])

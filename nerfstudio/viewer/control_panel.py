@@ -64,9 +64,9 @@ class ControlPanel:
         self.default_composite_depth = default_composite_depth
 
         self._train_speed = ViewerButtonGroup(
-            name="Train Speed",
-            default_value="Mid",
-            options=["Slow", "Mid", "Fast"],
+            name="Velocidad de entrenamiento",
+            default_value="Media",
+            options=["Lenta", "Media", "Rapida"],
             cb_hook=lambda han: self._train_speed_cb(),
         )
         self._output_render = ViewerDropdown(
