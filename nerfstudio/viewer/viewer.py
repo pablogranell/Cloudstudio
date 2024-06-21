@@ -95,8 +95,6 @@ class Viewer:
         self.datapath = datapath.parent if datapath.is_file() else datapath
         self.include_time = self.pipeline.datamanager.includes_time
         self.clientN = clientN
-        self.client_ids = {}
-        self.next_client_id = 0
 
         if self.config.websocket_port is None:
             websocket_port = viewer_utils.get_free_port(default_port=self.config.websocket_port_default)
@@ -143,7 +141,6 @@ class Viewer:
         self.viser_server.on_client_disconnect(self.handle_disconnect)
         self.viser_server.on_client_connect(self.handle_new_client)
         self.viser_server.on_client_connect(self.sync_camera)
-        self.viser_server.on_client_connect(self.get_client)
         # Populate the header, which includes the pause button, train cam button, and stats
         self.pause_train = self.viser_server.add_gui_button(
             label="Pausar Entrenamiento", disabled=False, icon=viser.Icon.PLAYER_PAUSE_FILLED
@@ -278,12 +275,6 @@ class Viewer:
                                 clients[id].camera.position = clients[control].camera.position
                                 clients[id].camera.wxyz = clients[control].camera.wxyz
 
-    def get_client(self, client: viser.ClientHandle) -> int:
-        if client.client_id not in self.client_ids:
-            self.client_ids[client.client_id] = self.next_client_id
-            self.next_client_id += 1
-        return self.client_ids[client.client_id]
-
     def make_stats_markdown(self, step: Optional[int], res: Optional[str], controladora: Optional[int], cliente: Optional[int]) -> str:
         # if either are None, read it from the current stats_markdown content
         if step is None:
@@ -295,7 +286,7 @@ class Viewer:
             CONSOLE.print(f"Controladora: {controladora}")
         if cliente is None:
             cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
-            CONSOLE.print(f"Cliente: {cliente}")
+            CONSOLE.print(f"ClienteBBBBBBBBBBBBBB: {cliente}")
         controladora = control
         cliente = self.clientN
         return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nCliente: {cliente}"
@@ -306,12 +297,7 @@ class Viewer:
             step: the train step to set the model to
         """
         controladora = control
-        current_client = next(iter(self.viser_server.get_clients().values()), None)
-        if current_client:
-            cliente = self.get_client(current_client)
-        else:
-            cliente = None
-        self.stats_markdown.content = self.make_stats_markdown(step, None, controladora, cliente)
+        self.stats_markdown.content = self.make_stats_markdown(step, None, controladora, self.clientN)
 
     def get_camera_state(self, client: viser.ClientHandle) -> CameraState:
         R = vtf.SO3(wxyz=client.camera.wxyz)
@@ -329,12 +315,12 @@ class Viewer:
 
     def handle_disconnect(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id].running = False
-        self.render_statemachines.pop(client.client_id)
 
     def handle_new_client(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
-        client_n = self.get_client(client)
+        self.clientN = client.client_id
+        CONSOLE.print(f"ClienteAAAAAAAAAAAA: {self.clientN}")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
             if not self.ready:
@@ -343,7 +329,7 @@ class Viewer:
             with self.viser_server.atomic():
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
-            self.stats_markdown.content = self.make_stats_markdown(None, None, control, client_n)
+            self.stats_markdown.content = self.make_stats_markdown(None, None, control, self.clientN)
 
     def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
