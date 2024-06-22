@@ -130,11 +130,11 @@ class Viewer:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
         self.viser_server.configure_theme(
-            control_layout="collapsible",
+            control_layout="floating",
             dark_mode=True,
-            brand_color=(255, 211, 105),
+            brand_color=(0, 51, 204),
             show_logo=False,
-            show_share_button=True,
+            show_share_button=False,
         )
 
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
@@ -275,6 +275,23 @@ class Viewer:
                                 self.render_statemachines[id].action(RenderAction("move", camera_state))
                                 clients[id].camera.position = clients[control].camera.position
                                 clients[id].camera.wxyz = clients[control].camera.wxyz
+
+    def controlCustom(self, client: viser.ClientHandle) -> None:
+        
+        if client.client_id == 0:
+            #Only show stats for the main client
+            self.stats_markdown.visible = True
+            #Only show the pause training button for the main client
+            self.pause_train.visible = True
+            #Only show the control tab for the main client
+            self.control_panel.visible = True
+            #Only show the reset button for the main client
+            self.reset_button.visible = True
+        else:
+            self.stats_markdown.visible = False
+            self.pause_train.visible = False
+            self.control_panel.visible = False
+            self.reset_button.visible = False
 
     def make_stats_markdown(self, step: Optional[int], res: Optional[str], controladora: Optional[int], cliente: Optional[int]) -> str:
         # if either are None, read it from the current stats_markdown content
