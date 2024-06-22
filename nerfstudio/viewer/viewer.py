@@ -286,10 +286,9 @@ class Viewer:
             CONSOLE.print(f"Controladora: {controladora}")
         if cliente is None:
             cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
-            CONSOLE.print(f"ClienteBBBBBBBBBBBBBB: {cliente}")
         controladora = control
         cliente = self.clientN
-        return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nCliente: {cliente}"
+        return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nClientes: {cliente+1}"
     
     def update_step(self, step):
         """
@@ -321,7 +320,7 @@ class Viewer:
         self.render_statemachines[client.client_id].start()
         self.clientN = client.client_id
         clients = self.viser_server.get_clients()
-        CONSOLE.print(f"ClienteAAAAAAAAAAAA: {self.clientN}")
+        #Cuidado
         CONSOLE.print(f"Clientes: {clients}")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:

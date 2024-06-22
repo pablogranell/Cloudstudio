@@ -86,7 +86,7 @@ class ControlPanel:
         self._min = ViewerNumber("Min", 0.0, cb_hook=lambda _: rerender_cb(), hint="Min value of the colormap")
         self._max = ViewerNumber("Max", 1.0, cb_hook=lambda _: rerender_cb(), hint="Max value of the colormap")
 
-        self._split = ViewerCheckbox(
+        '''self._split = ViewerCheckbox(
             "Enable",
             False,
             cb_hook=lambda han: [self.update_control_panel(), rerender_cb()],
@@ -118,7 +118,7 @@ class ControlPanel:
         self._split_max = ViewerNumber(
             "Max ", 1.0, cb_hook=lambda _: rerender_cb(), hint="Max value of the colormap of the second output"
         )
-
+        '''
         self._train_util = ViewerSlider(
             "Train Util",
             default_value=0.85,
