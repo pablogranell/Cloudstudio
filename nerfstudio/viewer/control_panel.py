@@ -89,7 +89,7 @@ class ControlPanel:
         self._split = ViewerCheckbox(
             "Enable",
             False,
-            disabled=False,
+            disabled=True,
             cb_hook=lambda han: [self.update_control_panel(), rerender_cb()],
             hint="Render two outputs",
         )
