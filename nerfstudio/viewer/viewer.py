@@ -175,7 +175,7 @@ class Viewer:
         mkdown = self.make_stats_markdown(0, "0x0px", 0, 0)
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
-        visor = tabs.add_tab("Visor", viser.Icon.VIEWER)
+        visor = tabs.add_tab("Visor", viser.Icon.FOCUS)
         control_tab = tabs.add_tab("Ajustes", viser.Icon.SETTINGS)
         with control_tab:
             self.control_panel = ControlPanel(
