@@ -277,7 +277,6 @@ class Viewer:
                                 clients[id].camera.wxyz = clients[control].camera.wxyz
 
     def controlCustom(self, client: viser.ClientHandle) -> None:
-        
         if client.client_id == 0:
             #Only show stats for the main client
             self.stats_markdown.visible = True
@@ -301,7 +300,7 @@ class Viewer:
             res = (self.stats_markdown.content.split("\n")[1].split(": ")[1]).strip()
         if controladora is None:
             controladora = int(self.stats_markdown.content.split("\n")[2].split(": ")[1])
-            CONSOLE.print(f"Controladora: {controladora}")
+            #CONSOLE.print(f"Controladora: {controladora}")
         if cliente is None:
             cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
         controladora = control
@@ -340,6 +339,7 @@ class Viewer:
         self.clientN = client.client_id
         #Cuidado
         #CONSOLE.print(f"Clientes: {clients}")
+        self.controlCustom(self.viser_server.get_clients()[self.clientN])
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
             if not self.ready:
