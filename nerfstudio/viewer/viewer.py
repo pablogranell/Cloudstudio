@@ -319,7 +319,7 @@ class Viewer:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
         self.clientN = client.client_id
-        clients = self.viser_server.get_clients()
+        #clients = self.viser_server.get_clients()
         #Cuidado
         #CONSOLE.print(f"Clientes: {clients}")
         @client.camera.on_update
@@ -330,7 +330,7 @@ class Viewer:
             with self.viser_server.atomic():
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
-            self.stats_markdown.content = self.make_stats_markdown(None, None, control, self.clientN)
+            #self.stats_markdown.content = self.make_stats_markdown(None, None, control, self.clientN)
 
     def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
