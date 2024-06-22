@@ -77,7 +77,7 @@ class ControlPanel:
             hint="The output to render",
         )
         self._colormap = ViewerDropdown[Colormaps](
-            "Colormap", "default", ["default"], cb_hook=lambda _: rerender_cb(), hint="The colormap to use"
+            "Colormap", "default", ["default"],disabled=True, visible=False, cb_hook=lambda _: rerender_cb(), hint="The colormap to use"
         )
         self._invert = ViewerCheckbox("Invert", False, cb_hook=lambda _: rerender_cb(), hint="Invert the colormap")
         self._normalize = ViewerCheckbox(
@@ -90,6 +90,7 @@ class ControlPanel:
             "Enable",
             False,
             disabled=True,
+            visible=False,
             cb_hook=lambda han: [self.update_control_panel(), rerender_cb()],
             hint="Render two outputs",
         )
@@ -131,6 +132,8 @@ class ControlPanel:
         self._layer_depth = ViewerCheckbox(
             "Composite depth",
             self.default_composite_depth,
+            disabled=True,
+            visible=False,
             cb_hook=lambda _: rerender_cb(),
             hint="Allow NeRF to occlude 3D browser objects",
         )
