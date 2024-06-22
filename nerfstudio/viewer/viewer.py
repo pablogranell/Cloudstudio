@@ -321,7 +321,7 @@ class Viewer:
         self.clientN = client.client_id
         clients = self.viser_server.get_clients()
         #Cuidado
-        CONSOLE.print(f"Clientes: {clients}")
+        #CONSOLE.print(f"Clientes: {clients}")
         @client.camera.on_update
         def _(_: viser.CameraHandle) -> None:
             if not self.ready:
