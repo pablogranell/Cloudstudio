@@ -66,7 +66,7 @@ class ControlPanel:
         self._train_speed = ViewerButtonGroup(
             name="Velocidad de entrenamiento",
             default_value="Media",
-            options=["Lenta", "Media", "Rapida"],
+            options=["Lenta", "Media", "Rápida"],
             cb_hook=lambda han: self._train_speed_cb(),
         )
         self._output_render = ViewerDropdown(
@@ -122,12 +122,12 @@ class ControlPanel:
         )
         
         self._train_util = ViewerSlider(
-            "Train Util",
+            "Porcentaje de entremiento",
             default_value=0.85,
             min_value=0.0,
             max_value=1,
             step=0.05,
-            hint="Target training utilization, 0.0 is slow, 1.0 is fast. Doesn't affect final render quality",
+            hint="Porcentaje de tiempo de entrenamiento. 0 es lento, 1 es rapido. No afecta a la calidad final.",
         )
         self._layer_depth = ViewerCheckbox(
             "Composite depth",
@@ -138,13 +138,13 @@ class ControlPanel:
             hint="Allow NeRF to occlude 3D browser objects",
         )
         self._max_res = ViewerSlider(
-            "Max res",
+            "Resolución máxima",
             512,
             64,
             2048,
             100,
             cb_hook=lambda _: rerender_cb(),
-            hint="Maximum resolution to render in viewport",
+            hint="Resolución máxima de la imagen de salida",
         )
         self._crop_viewport = ViewerCheckbox(
             "Enable ",
@@ -241,13 +241,13 @@ class ControlPanel:
         pass
 
         """Callback for when the train speed is changed"""
-        if self._train_speed.value == "Fast":
+        if self._train_speed.value == "Rápida":
             self._train_util.value = 0.95
             self._max_res.value = 256
-        elif self._train_speed.value == "Mid":
+        elif self._train_speed.value == "Media":
             self._train_util.value = 0.85
             self._max_res.value = 512
-        elif self._train_speed.value == "Slow":
+        elif self._train_speed.value == "Lenta":
             self._train_util.value = 0.5
             self._max_res.value = 1024
 
