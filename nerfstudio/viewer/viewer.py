@@ -175,6 +175,7 @@ class Viewer:
         mkdown = self.make_stats_markdown(0, "0x0px", 0, 0)
         self.stats_markdown = self.viser_server.add_gui_markdown(mkdown)
         tabs = self.viser_server.add_gui_tab_group()
+        visor = tabs.add_tab("Visor", viser.Icon.VIEWER)
         control_tab = tabs.add_tab("Ajustes", viser.Icon.SETTINGS)
         with control_tab:
             self.control_panel = ControlPanel(
@@ -288,7 +289,7 @@ class Viewer:
             cliente = int(self.stats_markdown.content.split("\n")[3].split(": ")[1])
         controladora = control
         cliente = self.clientN
-        return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora}  \nClientes: {cliente+1}"
+        return f"Pasos: {step}  \nResolucion: {res}  \nControladora: {controladora+1}  \nClientes: {cliente+1}"
     
     def update_step(self, step):
         """
@@ -314,12 +315,12 @@ class Viewer:
 
     def handle_disconnect(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id].running = False
+        toggle_control(len(self.viser_server.get_clients()))
 
     def handle_new_client(self, client: viser.ClientHandle) -> None:
         self.render_statemachines[client.client_id] = RenderStateMachine(self, VISER_NERFSTUDIO_SCALE_RATIO, client)
         self.render_statemachines[client.client_id].start()
         self.clientN = client.client_id
-        #clients = self.viser_server.get_clients()
         #Cuidado
         #CONSOLE.print(f"Clientes: {clients}")
         @client.camera.on_update
@@ -330,7 +331,6 @@ class Viewer:
             with self.viser_server.atomic():
                 camera_state = self.get_camera_state(client)
                 self.render_statemachines[client.client_id].action(RenderAction("move", camera_state))
-            #self.stats_markdown.content = self.make_stats_markdown(None, None, control, self.clientN)
 
     def set_camera_visibility(self, visible: bool) -> None:
         """Toggle the visibility of the training cameras."""
