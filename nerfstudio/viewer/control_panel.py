@@ -86,9 +86,10 @@ class ControlPanel:
         self._min = ViewerNumber("Min", 0.0, cb_hook=lambda _: rerender_cb(), hint="Min value of the colormap")
         self._max = ViewerNumber("Max", 1.0, cb_hook=lambda _: rerender_cb(), hint="Max value of the colormap")
 
-        '''self._split = ViewerCheckbox(
+        self._split = ViewerCheckbox(
             "Enable",
             False,
+            visible=False,
             cb_hook=lambda han: [self.update_control_panel(), rerender_cb()],
             hint="Render two outputs",
         )
@@ -118,7 +119,7 @@ class ControlPanel:
         self._split_max = ViewerNumber(
             "Max ", 1.0, cb_hook=lambda _: rerender_cb(), hint="Max value of the colormap of the second output"
         )
-        '''
+        
         self._train_util = ViewerSlider(
             "Train Util",
             default_value=0.85,
@@ -204,7 +205,7 @@ class ControlPanel:
             self.add_element(self._max, additional_tags=("colormap",))
 
         # split options
-        '''with self.viser_server.add_gui_folder("Split Screen"):
+        with self.viser_server.add_gui_folder("Split Screen"):
             self.add_element(self._split)
 
             self.add_element(self._split_percentage, additional_tags=("split",))
@@ -215,7 +216,7 @@ class ControlPanel:
             self.add_element(self._split_normalize, additional_tags=("split_colormap",))
             self.add_element(self._split_min, additional_tags=("split_colormap",))
             self.add_element(self._split_max, additional_tags=("split_colormap",))
-        '''
+        
         with self.viser_server.add_gui_folder("Crop Viewport"):
             self.add_element(self._crop_viewport)
             # Crop options
