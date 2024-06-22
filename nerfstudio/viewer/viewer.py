@@ -184,7 +184,7 @@ class Viewer:
                 self._trigger_rerender,
                 self._output_type_change,
                 self._output_split_type_change,
-                default_composite_depth=self.config.default_composite_depth,
+                default_composite_depth=False,
             )
         config_path = self.log_filename.parents[0] / "config.yml"
         viewer_gui_folders = dict()
@@ -380,10 +380,10 @@ class Viewer:
                 self.trainer.training_state = "training"
 
     def _output_type_change(self, _):
-        self.output_type_changed = True
+        self.output_type_changed = False
 
     def _output_split_type_change(self, _):
-        self.output_split_type_changed = True
+        self.output_split_type_changed = False
 
     def _pick_drawn_image_idxs(self, total_num: int) -> list[int]:
         """Determine indicies of images to display in viewer.
