@@ -130,11 +130,11 @@ class Viewer:
             self.viewer_info = [f"Viewer running locally at: http://{config.websocket_host}:{websocket_port}"]
 
         self.viser_server.configure_theme(
-            control_layout="floating",
+            control_layout="collapsible",
             dark_mode=True,
             brand_color=(0, 51, 204),
             show_logo=False,
-            show_share_button=False,
+            show_share_button=True,
         )
 
         self.render_statemachines: Dict[int, RenderStateMachine] = {}
