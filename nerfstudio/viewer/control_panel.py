@@ -204,7 +204,7 @@ class ControlPanel:
             self.add_element(self._max, additional_tags=("colormap",))
 
         # split options
-        with self.viser_server.add_gui_folder("Split Screen"):
+        '''with self.viser_server.add_gui_folder("Split Screen"):
             self.add_element(self._split)
 
             self.add_element(self._split_percentage, additional_tags=("split",))
@@ -215,7 +215,7 @@ class ControlPanel:
             self.add_element(self._split_normalize, additional_tags=("split_colormap",))
             self.add_element(self._split_min, additional_tags=("split_colormap",))
             self.add_element(self._split_max, additional_tags=("split_colormap",))
-
+        '''
         with self.viser_server.add_gui_folder("Crop Viewport"):
             self.add_element(self._crop_viewport)
             # Crop options
