@@ -57,6 +57,7 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 import tyro
 import yaml
+import torch._dynamo
 
 from nerfstudio.configs.config_utils import convert_markup_to_ansi
 from nerfstudio.configs.method_configs import AnnotatedBaseConfigUnion
@@ -68,7 +69,7 @@ DEFAULT_TIMEOUT = timedelta(minutes=30)
 
 # speedup for when input size to model doesn't change (much)
 torch.backends.cudnn.benchmark = True  # type: ignore
-
+torch._dynamo.config.suppress_errors = True
 
 def _find_free_port() -> str:
     """Finds a free port."""
