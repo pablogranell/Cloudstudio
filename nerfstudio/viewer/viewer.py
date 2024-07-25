@@ -119,6 +119,9 @@ class Viewer:
                 print("Couldn't make share URL!")
 
         if share_url is not None:
+            # Save the share URL to a file called "viewer_info.txt" in the \kaggle\working directory overriting any previous file
+            with open("/kaggle/working/viewer_info.txt", "w") as f:
+                f.write(share_url)
             self.viewer_info = [f"Viewer at: http://localhost:{websocket_port} or {share_url}"]
         elif config.websocket_host == "0.0.0.0":
             # 0.0.0.0 is not a real IP address and was confusing people, so
