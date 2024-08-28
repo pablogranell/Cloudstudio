@@ -70,7 +70,7 @@ class ControlPanel:
             cb_hook=lambda han: self._train_speed_cb(),
         )
         self._output_render = ViewerDropdown(
-            "Output type",
+            "Tipo de salida",
             "not set",
             ["not set"],
             cb_hook=lambda han: [self.update_control_panel(), update_output_cb(han), rerender_cb()],
@@ -147,7 +147,7 @@ class ControlPanel:
             hint="Resolución máxima de la imagen de salida",
         )
         self._crop_viewport = ViewerCheckbox(
-            "Enable ",
+            "Habilitar ",
             False,
             cb_hook=lambda han: [self.update_control_panel(), rerender_cb()],
             hint="Crop the scene to a specified box",
@@ -196,7 +196,7 @@ class ControlPanel:
         self.add_element(self._train_speed)
         self.add_element(self._train_util)
 
-        with self.viser_server.add_gui_folder("Render Options"):
+        with self.viser_server.add_gui_folder("Opciones de renderizado"):
             self.add_element(self._max_res)
             self.add_element(self._output_render)
             self.add_element(self._colormap)
@@ -220,7 +220,7 @@ class ControlPanel:
         self.add_element(self._split_min, additional_tags=("split_colormap",))
         self.add_element(self._split_max, additional_tags=("split_colormap",))
         
-        with self.viser_server.add_gui_folder("Crop Viewport"):
+        with self.viser_server.add_gui_folder("Cortar escena"):
             self.add_element(self._crop_viewport)
             # Crop options
             self.add_element(self._background_color, additional_tags=("crop",))
