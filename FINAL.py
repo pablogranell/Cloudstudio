@@ -14,6 +14,7 @@ import re
 import tkinter as tk
 from tkinter import ttk
 from socketio import Client
+import collections
 
 # Constants
 KAGGLE_JSON_PATH = os.path.expanduser(os.path.join('~', '.kaggle', 'kaggle.json'))
@@ -39,14 +40,18 @@ PREDEFINED_COMMANDS = {
         "command": "hypershell-copy token:/kaggle/working/checkpoint.ckpt /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
         "local": True
     },
-    "LERF": {
-        "command": "uv pip install  --no-progress --python=$(which python) git+https://github.com/kerrj/lerf && ns-train lerf --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+    "Entrenar LERF": {
+        "command": "pip install git+https://github.com/kerrj/lerf && ns-train lerf --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "Instruct-Nerf2Nerf": {
-        "command": "uv pip install  --no-progress --python=$(which python) git+https://github.com/ayaanzhaque/instruct-nerf2nerf && ns-train in2n --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000  --pipeline.prompt 'Replicate the poster in the TV' --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+    "Entrenar Instruct-Nerf2Nerf": {
+        "command": "pip install git+https://github.com/ayaanzhaque/instruct-nerf2nerf && ns-train in2n --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --pipeline.prompt 'Replicate the poster in the TV' --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
-    }  
+    },
+    "grger Instruct-Nerf2Nerf": {
+        "command": "uv pip install --no-progress --python=/opt/conda/bin/python git+https://github.com/ayaanzhaque/instruct-nerf2nerf",
+        "local": False
+    },
 }
 
 def log_to_terminal(message):
@@ -119,8 +124,6 @@ class Hypershell:
                         self.connecting = True
                         log_to_terminal(f"Esperando al servidor")
                         self._connection_error_logged = True
-            if self.checkURL and self.connected:
-                self.URL()
 
     def install(self):
         log_to_terminal("Instalando Hypershell...")
@@ -157,8 +160,8 @@ class Hypershell:
                     log_to_terminal("Ya hay un proceso en ejecución. Usa 'Interrumpir proceso' para detenerlo.")
                     return
                 elif response.status_code != 200:
-                    log_to_terminal(f"Error: {response.status_code}")
-                    log_to_terminal(response.text)
+                    log_to_terminal(f"Fin del comando: {response.status_code}")
+                    #log_to_terminal(response.text)
                     return
 
                 for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
@@ -167,13 +170,14 @@ class Hypershell:
                     else:
                         time.sleep(0.1)  # Pequeña pausa si no hay datos
         except requests.exceptions.RequestException as e:
-            log_to_terminal(f"Error de conexión: {str(e)}")
+            pass
 
     def stop_current_process(self):
         try:
             response = requests.post(f"http://{self.api_url}:{self.puerto}/stop", timeout=TIMEOUT)
             if response.status_code == 200:
                 log_to_terminal("Proceso interrumpido")
+                self.checkURL = True
             elif response.status_code == 404:
                 log_to_terminal("No hay proceso en ejecución para interrumpir")
             else:
@@ -187,27 +191,6 @@ class Hypershell:
                     self.output_queue.get_nowait()
                 except queue.Empty:
                     break
-
-    def URL(self):
-        try:
-            terminal_output = ""
-            while not self.output_queue.empty():
-                try:
-                    terminal_output += self.output_queue.get_nowait()
-                except queue.Empty:
-                    break
-            for line in terminal_output.splitlines():
-                if 'https://' in line and '.share.viser.studio' in line:
-                    self.viser_url = line.strip()
-                    self.checkURL = False
-                    log_to_terminal(f"URL de Viser encontrada: {self.viser_url}")
-                    break
-            else:
-                if not hasattr(self, '_viser_url_message_shown'):
-                    log_to_terminal("Esperando a la URL de Viser...")
-                    self._viser_url_message_shown = True
-        except Exception as e:
-            log_to_terminal(f"Error al leer la terminal: {e}. Reintentando...")
 
     def load_keys(self):
         if os.path.exists(f"{SCRIPT_DIR}/peer"):
@@ -305,7 +288,7 @@ class Hypershell:
 class CloudstudioGUI:
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.geometry("820x800")
+        self.root.geometry("840x800")
         self.root.title("Cloudstudio")
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -479,11 +462,6 @@ class CloudstudioGUI:
         self.gpu_memory_label = ctk.CTkLabel(self.bottom_row, text="GPU Mem: 0 MB", font=("",20), width=250)
         self.gpu_memory_label.pack(side='left', padx=10)
 
-        self.cpu_label.pack_configure(side='left', padx=10, anchor='w')
-        self.ram_label.pack_configure(side='left', padx=10, anchor='w')
-        self.gpu_label.pack_configure(side='left', padx=10, anchor='w')
-        self.gpu_memory_label.pack_configure(side='left', padx=10, anchor='w')
-
     def _setup_terminal(self):
         self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=250, font=("", 25), state="disabled")
         self.terminal_text.pack(pady=10, padx=20, fill='both', expand=True)
@@ -551,42 +529,48 @@ class CloudstudioGUI:
     def _execute_selected_command(self):
         command_name = self.command_var.get()
         if command_name in PREDEFINED_COMMANDS:
+            self.hypershell.checkURL = True
             self._execute_predefined_command(PREDEFINED_COMMANDS[command_name])
 
     def _execute_predefined_command(self, command):
         if not self.command_running:
+            self.hypershell.checkURL = True
             self.input_field.insert(0, command["command"])
             self._send_input(local=command["local"])
 
     def _on_closing(self):
-        #
-        #self.hypershell.stop_current_process()
         self.hypershell.stop()
         self.root.destroy()
 
     def _update_terminal(self):
-        messages = []
-        try:
-            while True:
-                if not TERMINAL_QUEUE.empty():
-                    messages.append(TERMINAL_QUEUE.get_nowait())
-                elif not self.hypershell.output_queue.empty() and not self.hypershell.checkURL:
+        messages = collections.deque()
+        while True:
+            try:
+                messages.append(TERMINAL_QUEUE.get_nowait())
+            except queue.Empty:
+                try:
                     messages.append(self.hypershell.output_queue.get_nowait())
-                else:
+                except queue.Empty:
                     break
-        except queue.Empty:
-            pass
 
         if messages:
-            cleaned_messages = [self._clean_terminal_output(msg) for msg in messages if msg]
-            if cleaned_messages:
-                self.terminal_text.configure(state="normal")  # Temporalmente habilitar la edición
-                self.terminal_text.insert("end", "\n".join(cleaned_messages) + "\n")
+            full_message = "\n".join(self._clean_terminal_output(msg) for msg in messages if msg)
+            
+            if self.hypershell.checkURL:
+                #log_to_terminal("Buscando URL")
+                viser_urls = re.findall(r'(https?://\S+\.share\.viser\.studio\S*)', full_message)
+                if viser_urls:
+                    self.hypershell.viser_url = viser_urls[-1]
+                    self.hypershell.checkURL = False
+
+            self.terminal_text.configure(state="normal")
+            at_bottom = self.terminal_text.yview()[1] == 1.0
+            self.terminal_text.insert("end", full_message + "\n")
+            if at_bottom:
                 self.terminal_text.see("end")
-                self.terminal_text.configure(state="disabled")  # Volver a deshabilitar la edición
-                
+            self.terminal_text.configure(state="disabled")
+
         self.root.after(UPDATE_INTERVAL, self._update_terminal)
-        #self.input_field.focus_set()
 
     def _clean_terminal_output(self, text):
         
@@ -615,7 +599,7 @@ class CloudstudioGUI:
                 log_to_terminal(f"Ejecutando comando local")
                 self._run_local_command(command)
             else:
-                log_to_terminal(f"Comando enviado. Espera hasta un minuto")
+                log_to_terminal(f"Comando enviado")
                 self.hypershell.run_command(command)
         finally:
             self.root.after(0, self._command_finished)
@@ -709,14 +693,15 @@ class CloudstudioGUI:
         self.gpu_memory_label.configure(text=f"GPU Mem: {self.hypershell.metrics.get('gpu_memory', 0):.1f} MB")
         
     def _update_token_and_viser(self):
-        if self.hypershell.checkURL:
-            self.viser_label.configure(text="Enlace Viser: No disponible")
-        else:
+        if not self.hypershell.checkURL:
             self.hypershell.viser_url = re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', self.hypershell.viser_url).strip()
-            self.viser_label.configure(text=f"Enlace Viser: {self.hypershell.viser_url}")
-            self.viser_button.configure(state="normal")
-        self.token_label.configure(text=f"{self.hypershell.token}")
-    
+
+        viser_text = "Enlace Viser: No disponible" if self.hypershell.checkURL else f"Enlace Viser: {self.hypershell.viser_url}"
+        #viser_state = "disabled" if self.hypershell.checkURL else "normal"
+        
+        self.viser_label.configure(text=viser_text)
+        #self.viser_button.configure(state=viser_state)
+        self.token_label.configure(text=self.hypershell.token)
     def _previous_command(self, event):
         if self.command_history and self.history_index < len(self.command_history) - 1:
             self.history_index += 1
