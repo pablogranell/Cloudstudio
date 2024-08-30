@@ -80,10 +80,8 @@ class Hypershell:
         if not self.installed:
             self.install()
         
-        if self.private_key == "":
+        if self.private_key == "" or self.token == "":
             self.private_key = self.load_keys()
-        if not self.private_key:
-            self.setup_keys()
 
         if self.should_connect:
             self.create_tunnel()
@@ -119,7 +117,7 @@ class Hypershell:
                     if not hasattr(self, '_connection_error_logged'):
                         self.connected = False
                         self.connecting = True
-                        log_to_terminal(f"Reconectando")
+                        log_to_terminal(f"Esperando al servidor")
                         self._connection_error_logged = True
             if self.checkURL and self.connected:
                 self.URL()
@@ -220,7 +218,8 @@ class Hypershell:
             log_to_terminal(f"Configuracion cargada")
         else:
             private_key = None
-            self.token = None
+            self.setup_keys()
+            log_to_terminal(f"Configuracion creada")
         return private_key
 
     def setup_keys(self):
@@ -237,23 +236,26 @@ class Hypershell:
             self.token = match.group(1)
             with open(f"{SCRIPT_DIR}/config", "w") as file:
                 file.write(self.token)
-            #self.private_key = self.load_keys()
-            self.restart()
+            if self.should_connect:
+                self.restart()
             if not hasattr(self, '_token_logged'):
                 log_to_terminal(f"Usando \"{self.token}\" como clave pública")
                 self._token_logged = True
 
     def update_notebook_key(self):
+        if self.private_key is None:
+            self.private_key = self.load_keys()
         notebook_file = f"{SCRIPT_DIR}/tfgipy.ipynb"
         try:
             with open(notebook_file, 'r') as file:
                 notebook_content = nbformat.read(file, as_version=4)
             if notebook_content.cells and notebook_content.cells[0].cell_type == 'code':
                 first_cell = notebook_content.cells[0]
-                pattern = r'echo\s"([a-zA-Z0-9]{52})"'
+                pattern = r'echo\s"([a-zA-Z0-9]{1,52})"'
                 first_cell.source = re.sub(pattern, f'echo "{self.private_key}"', first_cell.source)
             with open(notebook_file, 'w') as file:
                 nbformat.write(notebook_content, file)
+            log_to_terminal(f"Clave privada actualizada en la libreta")
         except FileNotFoundError:
             log_to_terminal(f"Error: No se encontró el archivo {notebook_file}")
         except Exception as e:
@@ -303,7 +305,7 @@ class Hypershell:
 class CloudstudioGUI:
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.geometry("920x800")
+        self.root.geometry("820x800")
         self.root.title("Cloudstudio")
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -345,6 +347,7 @@ class CloudstudioGUI:
         self._setup_video_section()
         self._setup_viser_section()
         self._setup_notebook_section()
+        self._setup_token_section()
         self._setup_status_section()
         self._setup_terminal()
         self._setup_input_field()
@@ -352,13 +355,13 @@ class CloudstudioGUI:
 
     def _setup_json_section(self):
         json_frame = ctk.CTkFrame(self.root)
-        json_frame.pack(pady=10, padx=10, fill='x')
+        json_frame.pack(pady=10, padx=20, fill='x')
     
         if self._check_kaggle_json():
-            ctk.CTkLabel(json_frame, text="Archivo kaggle.json encontrado", text_color="green", font=("",20)).pack(side='left', padx=5)
+            ctk.CTkLabel(json_frame, text="Archivo kaggle.json encontrado", text_color="green", font=("",20)).pack(side='left', padx=10)
         else:
-            ctk.CTkLabel(json_frame, text="Archivo kaggle.json no encontrado", text_color="red", font=("",20)).pack(side='left', padx=5)
-            ctk.CTkButton(json_frame, text="Buscar kaggle.json", command=self._browse_json).pack(side='left', padx=5)
+            ctk.CTkLabel(json_frame, text="Archivo kaggle.json no encontrado", text_color="red", font=("",20)).pack(side='left', padx=10)
+            ctk.CTkButton(json_frame, text="Buscar kaggle.json", command=self._browse_json).pack(side='left', padx=10)
 
     def _check_kaggle_json(self):
         if os.path.exists(KAGGLE_JSON_PATH):
@@ -386,7 +389,7 @@ class CloudstudioGUI:
             
     def _setup_video_section(self):
         self.video_frame = ctk.CTkFrame(self.root)
-        self.video_frame.pack(pady=10, padx=10, fill='x')
+        self.video_frame.pack(pady=10, padx=20, fill='x')
         self._update_video_status()
     
     def _update_video_status(self):
@@ -395,9 +398,9 @@ class CloudstudioGUI:
         video_exists = os.path.exists(os.path.join(SCRIPT_DIR, 'escena.mp4'))
         status_text = "Video encontrado" if video_exists else "Video no encontrado"
         status_color = "green" if video_exists else "red"
-        ctk.CTkLabel(self.video_frame, text=status_text, text_color=status_color, font=("",20)).pack(side='left', padx=5)
+        ctk.CTkLabel(self.video_frame, text=status_text, text_color=status_color, font=("",20)).pack(side='left', padx=10)
         if not video_exists:
-            ctk.CTkButton(self.video_frame, text="Buscar video", command=self._browse_video).pack(side='left', padx=5)
+            ctk.CTkButton(self.video_frame, text="Buscar video", command=self._browse_video).pack(side='left', padx=10)
 
     def _browse_video(self):
         video_path = filedialog.askopenfilename(filetypes=[("MP4 files", "*.mp4")])
@@ -412,11 +415,12 @@ class CloudstudioGUI:
 
     def _setup_viser_section(self):
         self.viser_frame = ctk.CTkFrame(self.root)
-        self.viser_frame.pack(pady=10, padx=10, fill='x')
+        self.viser_frame.pack(pady=10, padx=20, fill='x')
+        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",20), command=self._open_viser,width=220, state="disabled")
+        self.viser_button.pack(side='left', padx=(0,10))
         self.viser_label = ctk.CTkLabel(self.viser_frame, text="Enlace Viser: No disponible", font=("",20))
-        self.viser_label.pack(side='left', padx=5)
-        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",20), command=self._open_viser, state="disabled")
-        self.viser_button.pack(side='left', padx=5)
+        self.viser_label.pack(side='left', padx=50)
+        
 
     def _open_viser(self):
         if self.hypershell.viser_url:
@@ -424,55 +428,70 @@ class CloudstudioGUI:
 
     def _setup_notebook_section(self):
         notebook_frame = ctk.CTkFrame(self.root)
-        notebook_frame.pack(pady=10, padx=10, fill='x')
+        notebook_frame.pack(pady=10, padx=20, fill='x')
         ctk.CTkButton(notebook_frame, text="Ejecutar Libreta Kaggle", font=("",20), 
-                      command=self._run_kaggle_notebook).pack(side='left', padx=5)
+                      command=self._run_kaggle_notebook, width=220).pack(side='left', padx=(0,10))
         self.notebook_status_label = ctk.CTkLabel(notebook_frame, text=f"Estado de la libreta: {self.notebook_status}", font=("",20))
-        self.notebook_status_label.pack(side='left', padx=5)
-        
+        self.notebook_status_label.pack(side='left', padx=50)
+
+    def _setup_token_section(self):
         token_frame = ctk.CTkFrame(self.root)
-        token_frame.pack(pady=5, padx=10, fill='x')
-        ctk.CTkButton(token_frame, text="Cambiar Token", width=190, font=("",20), 
-                      command=self._change_token).pack(side='left', padx=10)
-        self.token_entry = ctk.CTkEntry(token_frame, width=525, font=("",20), placeholder_text="Nuevo token")
-        self.token_entry.pack(side='left', padx=(0, 10))
+        token_frame.pack(pady=5, padx=20, fill='x')
+        ctk.CTkButton(token_frame, text="Cambiar Token", width=220, font=("",20), 
+                      command=self._change_token).pack(side='left', padx=(0,10))
+        self.token_entry = ctk.CTkEntry(token_frame, width=0, font=("",20), placeholder_text="Nuevo token")
+        self.token_entry.pack(side='left', padx=(50,0), fill='x', expand=True)
+
+        self.token_frame = ctk.CTkFrame(self.root)
+        self.token_frame.pack(pady=5, padx=20, fill='x')
+        ctk.CTkLabel(self.token_frame, text="Token:", font=("",20)).pack(side='left', padx=(85,0))
+        self.token_label = ctk.CTkLabel(self.token_frame, text="", font=("",20), wraplength=0)
+        self.token_label.pack(side='right', fill='x', expand=True)
 
     def _setup_status_section(self):
         self.status_frame = ctk.CTkFrame(self.root)
-        self.status_frame.pack(pady=10, padx=10, fill='x')
+        self.status_frame.pack(pady=10, padx=20, fill='x')
         
-        self.connection_status = ctk.CTkLabel(self.status_frame, text="Conexion: Desconectado", text_color="red", font=("",20))
+        # Primera fila
+        self.top_row = ctk.CTkFrame(self.status_frame)
+        self.top_row.pack(fill='x')
+        
+        self.connection_status = ctk.CTkLabel(self.top_row, text="Conexion: Desconectado", text_color="red", font=("",20))
         self.connection_status.pack(side='left', padx=10)
         
-        self.cpu_label = ctk.CTkLabel(self.status_frame, text="CPU: 0%", font=("",20))
-        self.cpu_label.pack(side='left', padx=5)
+        self.cpu_label = ctk.CTkLabel(self.top_row, text="CPU: 0%", font=("",20), width=200)
+        self.cpu_label.pack(side='left', padx=10)
         
-        self.ram_label = ctk.CTkLabel(self.status_frame, text="RAM: 0%", font=("",20))
-        self.ram_label.pack(side='left', padx=5)
-
-        self.gpu_label = ctk.CTkLabel(self.status_frame, text="GPU: 0%", font=("",20))
-        self.gpu_label.pack(side='left', padx=5)
-
-        self.gpu_memory_label = ctk.CTkLabel(self.status_frame, text="GPU Mem: 0 MB", font=("",20))
-        self.gpu_memory_label.pack(side='left', padx=5)
+        self.ram_label = ctk.CTkLabel(self.top_row, text="RAM: 0%", font=("",20), width=200)
+        self.ram_label.pack(side='left', padx=10)
         
-        self.prepared_status = ctk.CTkLabel(self.status_frame, text="Desconocido", text_color="red", font=("",20))
-        self.prepared_status.pack(side='right', padx=10)
+        # Segunda fila
+        self.bottom_row = ctk.CTkFrame(self.status_frame)
+        self.bottom_row.pack(fill='x')
+        
+        self.prepared_status = ctk.CTkLabel(self.bottom_row, text="Estado: Desconocido", text_color="red", font=("",20))
+        self.prepared_status.pack(side='left', padx=10)
+        
+        self.gpu_label = ctk.CTkLabel(self.bottom_row, text="GPU: 0%", font=("",20), width=200)
+        self.gpu_label.pack(side='left', padx=10)
 
-        # Nueva fila para el token
-        self.token_frame = ctk.CTkFrame(self.root)
-        self.token_frame.pack(pady=5, padx=10, fill='x')
-        self.token_label = ctk.CTkLabel(self.token_frame, text="Token: ", font=("",20))
-        self.token_label.pack(side='left', padx=10)
+        self.gpu_memory_label = ctk.CTkLabel(self.bottom_row, text="GPU Mem: 0 MB", font=("",20), width=250)
+        self.gpu_memory_label.pack(side='left', padx=10)
+
+        # Bloquear la posición de CPU, RAM, GPU y VRAM
+        self.cpu_label.pack_configure(side='left', padx=10, anchor='w')
+        self.ram_label.pack_configure(side='left', padx=10, anchor='w')
+        self.gpu_label.pack_configure(side='left', padx=10, anchor='w')
+        self.gpu_memory_label.pack_configure(side='left', padx=10, anchor='w')
 
     def _setup_terminal(self):
         self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=250, font=("", 25), state="disabled")
-        self.terminal_text.pack(pady=10, padx=10, fill='both', expand=True)
+        self.terminal_text.pack(pady=10, padx=20, fill='both', expand=True)
         self.root.after(100, self._update_terminal)
 
     def _setup_input_field(self):
         self.input_frame = ctk.CTkFrame(self.root)
-        self.input_frame.pack(pady=10, padx=10, fill='x')
+        self.input_frame.pack(pady=10, padx=20, fill='x')
         
         # Frame para la entrada, el botón de enviar y la barra de progreso
         self.input_send_frame = ctk.CTkFrame(self.input_frame)
@@ -502,10 +521,37 @@ class CloudstudioGUI:
 
     def _setup_predefined_commands(self):
         commands_frame = ctk.CTkFrame(self.root)
-        commands_frame.pack(pady=10, padx=10, fill='x')
-        for i, (command_name, command) in enumerate(PREDEFINED_COMMANDS.items()):
-            ctk.CTkButton(commands_frame, text=command_name, font=("",20), 
-                          command=lambda cmd=command: self._execute_predefined_command(cmd)).grid(row=i//3, column=i%3, padx=5, pady=5)
+        commands_frame.pack(pady=10, padx=20, fill='x')
+        
+        # Crear un menú desplegable
+        self.command_var = ctk.StringVar(value="Seleccionar comando")
+        command_menu = ctk.CTkOptionMenu(commands_frame, variable=self.command_var, 
+                                         values=list(PREDEFINED_COMMANDS.keys()),
+                                         command=self._on_command_select,
+                                         font=("", 24),
+                                         width=350,
+                                         dropdown_font=("", 22),
+                                         dropdown_hover_color="#2980b9",
+                                         button_color="#3498db",
+                                         button_hover_color="#2980b9")
+        command_menu.pack(side='left', padx=0, pady=0)
+
+        execute_button = ctk.CTkButton(commands_frame, text="Ejecutar", font=("", 20),
+                                       command=self._execute_selected_command)
+        execute_button.pack(side='left', padx=10)
+
+        # Botón de entrenamiento
+        train_button = ctk.CTkButton(commands_frame, text="Entrenar", font=("", 20),
+                                     command=lambda: self._execute_predefined_command(PREDEFINED_COMMANDS["Entrenamiento"]))
+        train_button.pack(side='right', padx=0)
+
+    def _on_command_select(self, command_name):
+        pass
+
+    def _execute_selected_command(self):
+        command_name = self.command_var.get()
+        if command_name in PREDEFINED_COMMANDS:
+            self._execute_predefined_command(PREDEFINED_COMMANDS[command_name])
 
     def _execute_predefined_command(self, command):
         if not self.command_running:
@@ -595,20 +641,21 @@ class CloudstudioGUI:
         if self.notebook_status in ['Ejecutando', 'En cola', 'Iniciando']:
             log_to_terminal("Ya hay una libreta en ejecución. Por favor, espera a que termine.")
             self.hypershell.should_run = True
-            return
-        threading.Thread(target=self._execute_kaggle_notebook, daemon=True).start()
+        else:
+            threading.Thread(target=self._execute_kaggle_notebook, daemon=True).start()
         self.hypershell.should_run = True
         self.hypershell.should_connect = True  # Activar la conexión después de iniciar la libreta
 
     def _execute_kaggle_notebook(self):
         try:
-            log_to_terminal("Ejecutando la libreta Kaggle, esto puede tardar hasta 4 minutos")
+            
             self.notebook_status = "Iniciando"
             self.notebook_status_label.configure(text=f"Estado de la libreta: {self.notebook_status}")
             self.kaggle_api.kernels_pull(kernel=self.kernel_slug, path=SCRIPT_DIR, metadata=True)
             self.hypershell.update_notebook_key()
             self.kaggle_api.kernels_push(SCRIPT_DIR)
-            time.sleep(2)
+            log_to_terminal("Ejecutando la libreta Kaggle, esto puede tardar hasta 4 minutos")
+            time.sleep(10)
             threading.Thread(target=self.hypershell.run, daemon=True).start()
         except Exception as e:
             log_to_terminal(f"Error al ejecutar la libreta Kaggle: {e}")
@@ -651,7 +698,7 @@ class CloudstudioGUI:
             status, color = "Desconectado", "red"
         self.connection_status.configure(text=f"Conexion: {status}", text_color=color)
         
-        prepared_states = {(False, False): ("Desconocido", "red"),(True, True): ("Ejecutando", "orange"),(True, False): ("Preparado", "green"), (False, True): ("En cola", "orange")}
+        prepared_states = {(False, False): ("Estado: Desconocido", "red"),(True, True): ("Estado: Ejecutando", "orange"),(True, False): ("Estado: Preparado", "green"), (False, True): ("Estado: En cola", "orange")}
         status1, color1 = prepared_states[(self.hypershell.connected, self.command_running)]
         self.prepared_status.configure(text=status1, text_color=color1)
         self.cpu_label.configure(text=f"CPU: {self.hypershell.metrics.get('cpu', 0):.1f}%")
@@ -666,7 +713,7 @@ class CloudstudioGUI:
             self.hypershell.viser_url = re.sub(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])', '', self.hypershell.viser_url).strip()
             self.viser_label.configure(text=f"Enlace Viser: {self.hypershell.viser_url}")
             self.viser_button.configure(state="normal")
-        self.token_label.configure(text=f"Token: {self.hypershell.token}")
+        self.token_label.configure(text=f"{self.hypershell.token}")
     
     def _previous_command(self, event):
         if self.command_history and self.history_index < len(self.command_history) - 1:
