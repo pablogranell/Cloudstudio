@@ -309,7 +309,8 @@ class CloudstudioGUI:
         self.root.title("Cloudstudio")
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
-
+        self.font = ctk.CTkFont(family="Roboto", size=16)
+        self.title_font = ctk.CTkFont(family="Roboto", size=20, weight="bold")
         self.hypershell = Hypershell()
         self.kaggle_api = KaggleApi()
         self.kaggle_api.authenticate()
@@ -358,10 +359,10 @@ class CloudstudioGUI:
         json_frame.pack(pady=10, padx=20, fill='x')
     
         if self._check_kaggle_json():
-            ctk.CTkLabel(json_frame, text="Archivo kaggle.json encontrado", text_color="green", font=("",20)).pack(side='left', padx=10)
+            ctk.CTkLabel(json_frame, text="✔️ Archivo kaggle.json encontrado", text_color="green", font=("",20)).pack(side='left', padx=10)
         else:
-            ctk.CTkLabel(json_frame, text="Archivo kaggle.json no encontrado", text_color="red", font=("",20)).pack(side='left', padx=10)
-            ctk.CTkButton(json_frame, text="Buscar kaggle.json", command=self._browse_json).pack(side='left', padx=10)
+            ctk.CTkLabel(json_frame, text="❌ Archivo kaggle.json no encontrado", text_color="red", font=("",20)).pack(side='left', padx=10)
+            ctk.CTkButton(json_frame, text="📄 Buscar kaggle.json", command=self._browse_json).pack(side='left', padx=10)
 
     def _check_kaggle_json(self):
         if os.path.exists(KAGGLE_JSON_PATH):
@@ -396,11 +397,11 @@ class CloudstudioGUI:
         for widget in self.video_frame.winfo_children():
             widget.destroy()
         video_exists = os.path.exists(os.path.join(SCRIPT_DIR, 'escena.mp4'))
-        status_text = "Video encontrado" if video_exists else "Video no encontrado"
+        status_text = "✔️ Video encontrado" if video_exists else "❌ Video no encontrado"
         status_color = "green" if video_exists else "red"
         ctk.CTkLabel(self.video_frame, text=status_text, text_color=status_color, font=("",20)).pack(side='left', padx=10)
         if not video_exists:
-            ctk.CTkButton(self.video_frame, text="Buscar video", command=self._browse_video).pack(side='left', padx=10)
+            ctk.CTkButton(self.video_frame, text="📄 Buscar video", command=self._browse_video).pack(side='left', padx=10)
 
     def _browse_video(self):
         video_path = filedialog.askopenfilename(filetypes=[("MP4 files", "*.mp4")])
@@ -502,7 +503,7 @@ class CloudstudioGUI:
         self.input_field.bind("<Up>", self._previous_command)
         self.input_field.bind("<Down>", self._next_command)
         
-        self.send_button = ctk.CTkButton(self.input_send_frame, text="Enviar", font=("",30), command=self._send_input)
+        self.send_button = ctk.CTkButton(self.input_send_frame, text="➡️ Enviar", font=("",30), command=self._send_input)
         self.send_button.pack(side='left')
         
         # Crear el widget de progreso sobre el campo de entrada y el botón de enviar
@@ -515,7 +516,7 @@ class CloudstudioGUI:
         self.interrupt_frame = ctk.CTkFrame(self.input_frame)
         self.interrupt_frame.pack(side='left', fill='y')
         
-        self.interrupt_button = ctk.CTkButton(self.interrupt_frame, text="Interrumpir proceso", font=("",30), command=self.hypershell.stop_current_process)
+        self.interrupt_button = ctk.CTkButton(self.interrupt_frame, text="⏹️ Interrumpir proceso", font=("",30), command=self.hypershell.stop_current_process)
         self.interrupt_button.pack(fill='both', expand=True)
 
     def _setup_predefined_commands(self):
@@ -535,12 +536,12 @@ class CloudstudioGUI:
                                          button_hover_color="#2980b9")
         command_menu.pack(side='left', padx=0, pady=0)
 
-        execute_button = ctk.CTkButton(commands_frame, text="Ejecutar", font=("", 25),
+        execute_button = ctk.CTkButton(commands_frame, text="▶️ Ejecutar", font=("", 25),
                                        command=self._execute_selected_command)
         execute_button.pack(side='left', padx=10)
 
         # Botón de entrenamiento
-        train_button = ctk.CTkButton(commands_frame, text="Entrenar", font=("", 25),
+        train_button = ctk.CTkButton(commands_frame, text="🚀 Entrenar", font=("", 25),
                                      command=lambda: self._execute_predefined_command(PREDEFINED_COMMANDS["Entrenamiento"]))
         train_button.pack(side='right', padx=0)
 
@@ -692,7 +693,7 @@ class CloudstudioGUI:
 
     def _update_connection_status(self):
         if self.hypershell.connecting:
-            status, color = "Conectando", "orange"
+            status, color = " Conectando", "orange"
         elif self.hypershell.connected:
             status, color = "Conectado", "green"
         else:
