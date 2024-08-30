@@ -400,7 +400,7 @@ class CloudstudioGUI:
     def _setup_viser_section(self):
         self.viser_frame = ctk.CTkFrame(self.root)
         self.viser_frame.pack(pady=10, padx=20, fill='x')
-        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",20), command=self._open_viser,width=220, state="disabled")
+        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",20), command=self._open_viser,width=220, state="normal")
         self.viser_button.pack(side='left', padx=(0,10))
         self.viser_label = ctk.CTkLabel(self.viser_frame, text="Enlace Viser: No disponible", font=("",20))
         self.viser_label.pack(side='left', padx=50)
