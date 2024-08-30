@@ -22,7 +22,6 @@ TERMINAL_QUEUE = queue.Queue()
 UPDATE_INTERVAL = 1
 UPDATE_INTERVAL_LONG = 10
 TIMEOUT = 15
-EXIT = "qwerty123456"
 PREDEFINED_COMMANDS = {
     "Transferir video al servidor": {
         "command": f"hypershell-copy {os.path.join(SCRIPT_DIR, 'escena.mp4')} token:/kaggle/temp/Cloudstudio/data/nerfstudio/escena.mp4",
@@ -33,17 +32,21 @@ PREDEFINED_COMMANDS = {
         "local": False
     },
     "Entrenamiento": {
-        "command": "ns-train nerfacto --pipeline.datamanager.masks-on-gpu True --pipeline.datamanager.images-on-gpu True --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000",
+        "command": "ns-train nerfacto --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "Devolver escena (semi)entrenada": {
+    "Devolver escena entrenada": {
         "command": "hypershell-copy token:/kaggle/working/checkpoint.ckpt /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
         "local": True
     },
-    "Interrumpir proceso": {
-        "command": EXIT,
+    "LERF": {
+        "command": "uv pip install  --no-progress --python=$(which python) git+https://github.com/kerrj/lerf && ns-train lerf --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
+    "Instruct-Nerf2Nerf": {
+        "command": "uv pip install  --no-progress --python=$(which python) git+https://github.com/ayaanzhaque/instruct-nerf2nerf && ns-train in2n --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000  --pipeline.prompt 'Replicate the poster in the TV' --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+        "local": False
+    }  
 }
 
 def log_to_terminal(message):
@@ -150,26 +153,23 @@ class Hypershell:
             log_to_terminal("Túnel Hypershell cerrado")
 
     def run_command(self, command):
-        if command == EXIT:
-            self.stop_current_process()
-        else:
-            try:
-                with requests.post(f"http://{self.api_url}:{self.puerto}/run", json={'command': command}, stream=True, timeout=None) as response:
-                    if response.status_code == 409:
-                        log_to_terminal("Ya hay un proceso en ejecución. Usa 'Interrumpir proceso' para detenerlo.")
-                        return
-                    elif response.status_code != 200:
-                        log_to_terminal(f"Error: {response.status_code}")
-                        log_to_terminal(response.text)
-                        return
+        try:
+            with requests.post(f"http://{self.api_url}:{self.puerto}/run", json={'command': command}, stream=True, timeout=None) as response:
+                if response.status_code == 409:
+                    log_to_terminal("Ya hay un proceso en ejecución. Usa 'Interrumpir proceso' para detenerlo.")
+                    return
+                elif response.status_code != 200:
+                    log_to_terminal(f"Error: {response.status_code}")
+                    log_to_terminal(response.text)
+                    return
 
-                    for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
-                        if chunk:
-                            self.output_queue.put(chunk)
-                        else:
-                            time.sleep(0.1)  # Pequeña pausa si no hay datos
-            except requests.exceptions.RequestException as e:
-                log_to_terminal(f"Error de conexión: {str(e)}")
+                for chunk in response.iter_content(chunk_size=1024, decode_unicode=True):
+                    if chunk:
+                        self.output_queue.put(chunk)
+                    else:
+                        time.sleep(0.1)  # Pequeña pausa si no hay datos
+        except requests.exceptions.RequestException as e:
+            log_to_terminal(f"Error de conexión: {str(e)}")
 
     def stop_current_process(self):
         try:
@@ -210,31 +210,6 @@ class Hypershell:
                     self._viser_url_message_shown = True
         except Exception as e:
             log_to_terminal(f"Error al leer la terminal: {e}. Reintentando...")
-    
-    '''def get_metrics(self):
-        try:
-            response = requests.get(f'http://{self.api_url}:{self.puerto}/metrics', timeout=TIMEOUT)
-            if response.status_code == 200:
-                metrics = response.json()
-                self.cpu_usage = metrics.get('cpu', 0)
-                self.ram_usage = metrics.get('memory', 0)
-                self.gpu_usage = metrics.get('gpu', 0)
-                self.gpu_memory = metrics.get('gpu_memory', 0)
-                current_time = time.time()
-                if current_time - self.last_metric_time < TIMEOUT:
-                    if not self.connected:
-                        log_to_terminal("Conectado al servidor")
-                        self.connected = True
-                self.last_metric_time = current_time
-            else:
-                self.connected = False
-                log_to_terminal(f"Error al obtener métricas. Código de estado: {response.status_code}")
-        except requests.exceptions.RequestException as e:
-            self.connected = False
-            if not hasattr(self, '_connection_error_logged'):
-                log_to_terminal(f"El servidor sigue configurandose, por favor espera.")
-                self._connection_error_logged = True'''
-    
 
     def load_keys(self):
         if os.path.exists(f"{SCRIPT_DIR}/peer"):
@@ -301,20 +276,34 @@ class Hypershell:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(TIMEOUT)
             try:
+                # Try to connect to the port
                 sock.connect(('localhost', self.tunnel_port))
-            except:
+                # If successful, send a shutdown signal
+                sock.shutdown(socket.SHUT_RDWR)
+            except socket.error:
+                # If connection fails, the port might already be closed
                 pass
             finally:
                 sock.close()
-                delattr(self, 'tunnel_port')
+            
+            # Try to forcefully close the port using psutil
+            import psutil
+            for conn in psutil.net_connections():
+                if conn.laddr.port == self.tunnel_port:
+                    try:
+                        psutil.Process(conn.pid).terminate()
+                    except psutil.NoSuchProcess:
+                        pass
+            
+            delattr(self, 'tunnel_port')
 
         if self.sio.connected:
-            self.sio.disconnect()           
+            self.sio.disconnect()
 
 class CloudstudioGUI:
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.geometry("1280x720")
+        self.root.geometry("920x800")
         self.root.title("Cloudstudio")
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -340,7 +329,6 @@ class CloudstudioGUI:
 
         self._run()
         self.input_field.focus_set()
-        self.root.bind(EXIT, lambda event: self.hypershell.stop_current_process())
         self.root.protocol("WM_DELETE_WINDOW", self._on_closing)
         self.root.mainloop()
 
@@ -442,10 +430,12 @@ class CloudstudioGUI:
         self.notebook_status_label = ctk.CTkLabel(notebook_frame, text=f"Estado de la libreta: {self.notebook_status}", font=("",20))
         self.notebook_status_label.pack(side='left', padx=5)
         
-        ctk.CTkButton(notebook_frame, text="Cambiar Token", width=190, font=("",20), 
-                      command=self._change_token).pack(side='right', padx=10)
-        self.token_entry = ctk.CTkEntry(notebook_frame, width=525, font=("",20), placeholder_text="Nuevo token")
-        self.token_entry.pack(side='right', padx=(0, 10))
+        token_frame = ctk.CTkFrame(self.root)
+        token_frame.pack(pady=5, padx=10, fill='x')
+        ctk.CTkButton(token_frame, text="Cambiar Token", width=190, font=("",20), 
+                      command=self._change_token).pack(side='left', padx=10)
+        self.token_entry = ctk.CTkEntry(token_frame, width=525, font=("",20), placeholder_text="Nuevo token")
+        self.token_entry.pack(side='left', padx=(0, 10))
 
     def _setup_status_section(self):
         self.status_frame = ctk.CTkFrame(self.root)
@@ -459,15 +449,24 @@ class CloudstudioGUI:
         
         self.ram_label = ctk.CTkLabel(self.status_frame, text="RAM: 0%", font=("",20))
         self.ram_label.pack(side='left', padx=5)
-        
-        self.token_label = ctk.CTkLabel(self.status_frame, text="Token: ", font=("",20))
-        self.token_label.pack(side='left', padx=10)
 
+        self.gpu_label = ctk.CTkLabel(self.status_frame, text="GPU: 0%", font=("",20))
+        self.gpu_label.pack(side='left', padx=5)
+
+        self.gpu_memory_label = ctk.CTkLabel(self.status_frame, text="GPU Mem: 0 MB", font=("",20))
+        self.gpu_memory_label.pack(side='left', padx=5)
+        
         self.prepared_status = ctk.CTkLabel(self.status_frame, text="Desconocido", text_color="red", font=("",20))
         self.prepared_status.pack(side='right', padx=10)
 
+        # Nueva fila para el token
+        self.token_frame = ctk.CTkFrame(self.root)
+        self.token_frame.pack(pady=5, padx=10, fill='x')
+        self.token_label = ctk.CTkLabel(self.token_frame, text="Token: ", font=("",20))
+        self.token_label.pack(side='left', padx=10)
+
     def _setup_terminal(self):
-        self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=300, font=("", 20), state="disabled")
+        self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=250, font=("", 25), state="disabled")
         self.terminal_text.pack(pady=10, padx=10, fill='both', expand=True)
         self.root.after(100, self._update_terminal)
 
@@ -475,38 +474,44 @@ class CloudstudioGUI:
         self.input_frame = ctk.CTkFrame(self.root)
         self.input_frame.pack(pady=10, padx=10, fill='x')
         
-        # Frame para la entrada y el botón
-        self.input_content_frame = ctk.CTkFrame(self.input_frame)
-        self.input_content_frame.pack(fill='x', expand=True)
+        # Frame para la entrada, el botón de enviar y la barra de progreso
+        self.input_send_frame = ctk.CTkFrame(self.input_frame)
+        self.input_send_frame.pack(side='left', fill='x', expand=True, padx=(0, 10))
         
-        self.input_field = ctk.CTkEntry(self.input_content_frame, width=500,height=40, font=("",20), placeholder_text="Escribe un comando")
-        self.input_field.pack(side='left', padx=(0, 10), fill='x', expand=True)
+        self.input_field = ctk.CTkEntry(self.input_send_frame, height=40, font=("",25), placeholder_text="Escribe un comando")
+        self.input_field.pack(side='left', fill='x', expand=True, padx=(0, 10))
         self.input_field.bind("<Return>", lambda event: self._send_input())
         self.input_field.bind("<Up>", self._previous_command)
         self.input_field.bind("<Down>", self._next_command)
         
-        self.send_button = ctk.CTkButton(self.input_content_frame, text="Enviar", font=("",30), command=self._send_input)
-        self.send_button.pack(side='right')
+        self.send_button = ctk.CTkButton(self.input_send_frame, text="Enviar", font=("",30), command=self._send_input)
+        self.send_button.pack(side='left')
         
-        # Crear el widget de progreso
-        self.progress = ctk.CTkProgressBar(self.input_frame, orientation="horizontal", mode="indeterminate", height=20)
-        self.progress.pack(fill='x', expand=True)
-        self.progress.pack_forget()  # Ocultar inicialmente
-        self.progress.set(0)  # Inicializar en 0
+        # Crear el widget de progreso sobre el campo de entrada y el botón de enviar
+        self.progress = ctk.CTkProgressBar(self.input_send_frame, orientation="horizontal", mode="indeterminate", height=40)
+        self.progress.place(relx=0, rely=0, relwidth=1, relheight=1)
+        self.progress.set(0)
+        self.progress.lower()  # Colocar la barra de progreso detrás de los otros widgets
+        
+        # Frame para el botón de interrupción
+        self.interrupt_frame = ctk.CTkFrame(self.input_frame)
+        self.interrupt_frame.pack(side='left', fill='y')
+        
+        self.interrupt_button = ctk.CTkButton(self.interrupt_frame, text="Interrumpir proceso", font=("",30), command=self.hypershell.stop_current_process)
+        self.interrupt_button.pack(fill='both', expand=True)
 
     def _setup_predefined_commands(self):
         commands_frame = ctk.CTkFrame(self.root)
         commands_frame.pack(pady=10, padx=10, fill='x')
-        for command_name, command in PREDEFINED_COMMANDS.items():
+        for i, (command_name, command) in enumerate(PREDEFINED_COMMANDS.items()):
             ctk.CTkButton(commands_frame, text=command_name, font=("",20), 
-                          command=lambda cmd=command: self._execute_predefined_command(cmd)).pack(side='left', padx=5)
+                          command=lambda cmd=command: self._execute_predefined_command(cmd)).grid(row=i//3, column=i%3, padx=5, pady=5)
 
     def _execute_predefined_command(self, command):
-        if not self.command_running or command["command"] == EXIT:
-            self.input_field.delete(0, 'end')
+        if not self.command_running:
             self.input_field.insert(0, command["command"])
             self._send_input(local=command["local"])
-    
+
     def _on_closing(self):
         self.hypershell.stop()
         self.root.destroy()
@@ -549,17 +554,20 @@ class CloudstudioGUI:
             self.command_history.insert(0, user_input)
             self.history_index = -1
             self.command_running = True
-            self.input_content_frame.pack_forget()  # Ocultar la entrada y el botón
-            self.progress.pack(fill='x', expand=True)  # Mostrar el progreso
+            self.input_field.delete(0, 'end')
+            self.input_field.configure(state="disabled")  # Deshabilitar la entrada
+            self.send_button.configure(state="disabled")  # Deshabilitar el botón de enviar
+            self.progress.lift()  # Traer la barra de progreso al frente
             self.progress.start()  # Iniciar la animación
             threading.Thread(target=self._run_command, args=(user_input, local)).start()
-            self.input_field.delete(0, 'end')
 
     def _run_command(self, command, local=False):
         try:
             if local:
+                log_to_terminal(f"Ejecutando comando local")
                 self._run_local_command(command)
             else:
+                log_to_terminal(f"Comando enviado. Espera hasta un minuto")
                 self.hypershell.run_command(command)
         finally:
             self.root.after(0, self._command_finished)
@@ -578,8 +586,9 @@ class CloudstudioGUI:
     def _command_finished(self):
         self.command_running = False
         self.progress.stop()  # Detener la animación
-        self.progress.pack_forget()  # Ocultar el progreso
-        self.input_content_frame.pack(fill='x', expand=True)  # Mostrar la entrada y el botón
+        self.progress.lower()  # Enviar la barra de progreso al fondo
+        self.input_field.configure(state="normal")  # Habilitar la entrada
+        self.send_button.configure(state="normal")  # Habilitar el botón de enviar
         self.input_field.focus_set()
 
     def _run_kaggle_notebook(self):
@@ -647,10 +656,8 @@ class CloudstudioGUI:
         self.prepared_status.configure(text=status1, text_color=color1)
         self.cpu_label.configure(text=f"CPU: {self.hypershell.metrics.get('cpu', 0):.1f}%")
         self.ram_label.configure(text=f"RAM: {self.hypershell.metrics.get('memory', 0):.1f}%")
-        '''if 'gpu_load' in self.hypershell.metrics:
-            self.gpu_label.configure(text=f"GPU: {self.hypershell.metrics['gpu_load']:.1f}%")
-        if 'gpu_memory' in self.hypershell.metrics:
-            self.gpu_memory_label.configure(text=f"GPU Mem: {self.hypershell.metrics['gpu_memory']:.1f} MB")'''
+        self.gpu_label.configure(text=f"GPU: {self.hypershell.metrics.get('gpu_load', 0):.1f}%")
+        self.gpu_memory_label.configure(text=f"GPU Mem: {self.hypershell.metrics.get('gpu_memory', 0):.1f} MB")
         
     def _update_token_and_viser(self):
         if self.hypershell.checkURL:
