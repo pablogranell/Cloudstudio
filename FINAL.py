@@ -478,7 +478,6 @@ class CloudstudioGUI:
         self.gpu_memory_label = ctk.CTkLabel(self.bottom_row, text="GPU Mem: 0 MB", font=("",20), width=250)
         self.gpu_memory_label.pack(side='left', padx=10)
 
-        # Bloquear la posición de CPU, RAM, GPU y VRAM
         self.cpu_label.pack_configure(side='left', padx=10, anchor='w')
         self.ram_label.pack_configure(side='left', padx=10, anchor='w')
         self.gpu_label.pack_configure(side='left', padx=10, anchor='w')
@@ -523,25 +522,25 @@ class CloudstudioGUI:
         commands_frame = ctk.CTkFrame(self.root)
         commands_frame.pack(pady=10, padx=20, fill='x')
         
-        # Crear un menú desplegable
+        # Menú desplegable
         self.command_var = ctk.StringVar(value="Seleccionar comando")
         command_menu = ctk.CTkOptionMenu(commands_frame, variable=self.command_var, 
                                          values=list(PREDEFINED_COMMANDS.keys()),
                                          command=self._on_command_select,
-                                         font=("", 24),
+                                         font=("", 25),
                                          width=350,
-                                         dropdown_font=("", 22),
+                                         dropdown_font=("", 25),
                                          dropdown_hover_color="#2980b9",
                                          button_color="#3498db",
                                          button_hover_color="#2980b9")
         command_menu.pack(side='left', padx=0, pady=0)
 
-        execute_button = ctk.CTkButton(commands_frame, text="Ejecutar", font=("", 20),
+        execute_button = ctk.CTkButton(commands_frame, text="Ejecutar", font=("", 25),
                                        command=self._execute_selected_command)
         execute_button.pack(side='left', padx=10)
 
         # Botón de entrenamiento
-        train_button = ctk.CTkButton(commands_frame, text="Entrenar", font=("", 20),
+        train_button = ctk.CTkButton(commands_frame, text="Entrenar", font=("", 25),
                                      command=lambda: self._execute_predefined_command(PREDEFINED_COMMANDS["Entrenamiento"]))
         train_button.pack(side='right', padx=0)
 
@@ -559,6 +558,8 @@ class CloudstudioGUI:
             self._send_input(local=command["local"])
 
     def _on_closing(self):
+        #
+        #self.hypershell.stop_current_process()
         self.hypershell.stop()
         self.root.destroy()
 
@@ -601,10 +602,10 @@ class CloudstudioGUI:
             self.history_index = -1
             self.command_running = True
             self.input_field.delete(0, 'end')
-            self.input_field.configure(state="disabled")  # Deshabilitar la entrada
-            self.send_button.configure(state="disabled")  # Deshabilitar el botón de enviar
+            self.input_field.configure(state="disabled")
+            self.send_button.configure(state="disabled")
             self.progress.lift()  # Traer la barra de progreso al frente
-            self.progress.start()  # Iniciar la animación
+            self.progress.start()
             threading.Thread(target=self._run_command, args=(user_input, local)).start()
 
     def _run_command(self, command, local=False):
@@ -631,10 +632,10 @@ class CloudstudioGUI:
 
     def _command_finished(self):
         self.command_running = False
-        self.progress.stop()  # Detener la animación
+        self.progress.stop()
         self.progress.lower()  # Enviar la barra de progreso al fondo
-        self.input_field.configure(state="normal")  # Habilitar la entrada
-        self.send_button.configure(state="normal")  # Habilitar el botón de enviar
+        self.input_field.configure(state="normal")
+        self.send_button.configure(state="normal")
         self.input_field.focus_set()
 
     def _run_kaggle_notebook(self):
