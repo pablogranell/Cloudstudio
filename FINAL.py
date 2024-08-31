@@ -8,7 +8,6 @@ import webbrowser
 from tkinter import filedialog
 import nbformat
 import customtkinter as ctk
-from kaggle.api.kaggle_api_extended import KaggleApi
 import requests
 import re
 import tkinter as tk
@@ -18,6 +17,10 @@ import collections
 
 # Constants
 KAGGLE_JSON_PATH = os.path.expanduser(os.path.join('~', '.kaggle', 'kaggle.json'))
+if os.path.exists(KAGGLE_JSON_PATH):
+     from kaggle.api.kaggle_api_extended import KaggleApi
+else:
+    KaggleApi = None
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TERMINAL_QUEUE = queue.Queue()
 UPDATE_INTERVAL = 1
@@ -29,7 +32,7 @@ PREDEFINED_COMMANDS = {
         "local": True
     },
     "Preparar escena": {
-        "command": "ns-process-data video --data /kaggle/temp/Cloudstudio/data/nerfstudio/escena --output-dir /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
+        "command": "pip install pycolmap && ns-process-data video --data /kaggle/temp/Cloudstudio/data/nerfstudio/escena --output-dir /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
         "local": False
     },
     "Entrenamiento": {
@@ -48,10 +51,31 @@ PREDEFINED_COMMANDS = {
         "command": "pip install git+https://github.com/ayaanzhaque/instruct-nerf2nerf && ns-train in2n --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --pipeline.prompt 'Replicate the poster in the TV' --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "grger Instruct-Nerf2Nerf": {
-        "command": "uv pip install --no-progress --python=/opt/conda/bin/python git+https://github.com/ayaanzhaque/instruct-nerf2nerf",
+    "Ejecutar Splatfacto (T4)": {
+        "command": "ns-train splatfacto --pipeline.datamanager.masks-on-gpu True --pipeline.datamanager.images-on-gpu True --viewer.make-share-url True --logging.local-writer.max-log-size=0 --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
+    "Nerfacto-big": {
+        "command": "ns-train nerfacto-big --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+        "local": False
+    },
+    "Ejecutar Instant-NGP (T4)": {
+        "command": "ns-train instant-ngp --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+        "local": False
+    },
+    "Limpiar espacio de trabajo": {
+        "command": "rm -rf /kaggle/working/*",
+        "local": False
+    },
+    "Ejecutar Visor": {
+        "command": "ns-viewer --load-config /kaggle/working/config.yml",
+        "local": False
+    },
+    "Ayuda nerfacto": {
+        "command": "ns-help nerfacto",
+        "local": False
+    }
+    
 }
 
 def log_to_terminal(message):
@@ -295,8 +319,11 @@ class CloudstudioGUI:
         self.font = ctk.CTkFont(family="Roboto", size=16)
         self.title_font = ctk.CTkFont(family="Roboto", size=20, weight="bold")
         self.hypershell = Hypershell()
-        self.kaggle_api = KaggleApi()
-        self.kaggle_api.authenticate()
+        if KaggleApi is not None:
+            self.kaggle_api = KaggleApi()
+            self.kaggle_api.authenticate()
+        else:
+            self.kaggle_api = None
         self.notebook_status = "Desconocido"
         self.kernel_slug = 'pablogranell/TFGipy'
         self.command_running = False
@@ -668,12 +695,13 @@ class CloudstudioGUI:
             time.sleep(UPDATE_INTERVAL)
 
     def _check_notebook_status(self):
-        try:
-            status = self.kaggle_api.kernels_status(self.kernel_slug)['status']
-            self.notebook_status_label.configure(text=f"Estado de la libreta: {self.status_map.get(status, status)}")
-            self.hypershell.should_connect = self.hypershell.should_run = status in self.active_notebook_states
-        except Exception as e:
-            log_to_terminal(f"Error al obtener el estado de la libreta: {e}")
+        if self.kaggle_api is not None: 
+            try:
+                status = self.kaggle_api.kernels_status(self.kernel_slug)['status']
+                self.notebook_status_label.configure(text=f"Estado de la libreta: {self.status_map.get(status, status)}")
+                self.hypershell.should_connect = self.hypershell.should_run = status in self.active_notebook_states
+            except Exception as e:
+                log_to_terminal(f"Error al obtener el estado de la libreta: {e}")
 
     def _update_connection_status(self):
         if self.hypershell.connecting:
