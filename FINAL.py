@@ -35,13 +35,29 @@ PREDEFINED_COMMANDS = {
         "command": "pip install pycolmap && ns-process-data video --data /kaggle/temp/Cloudstudio/data/nerfstudio/escena --output-dir /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
         "local": False
     },
-    "Entrenamiento": {
-        "command": "ns-train nerfacto --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+    "Ejecutar Visor": {
+        "command": "ns-viewer --load-config /kaggle/working/config.yml",
         "local": False
     },
     "Devolver escena entrenada": {
         "command": "hypershell-copy token:/kaggle/working/checkpoint.ckpt /kaggle/temp/Cloudstudio/data/nerfstudio/poster",
         "local": True
+    },
+    "Limpiar espacio de trabajo": {
+        "command": "rm -rf /kaggle/working/*",
+        "local": False
+    },
+    "Modelos:": {
+        "command": "ns-train --help",
+        "local": False
+    },
+    "Entrenamiento estandar": {
+        "command": "ns-train nerfacto --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+        "local": False
+    },
+    "Entrenamiento de alta calidad (Nerfacto-big)": {
+        "command": "ns-train nerfacto-big --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+        "local": False
     },
     "Entrenar LERF": {
         "command": "pip install git+https://github.com/kerrj/lerf && ns-train lerf --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
@@ -51,30 +67,19 @@ PREDEFINED_COMMANDS = {
         "command": "pip install git+https://github.com/ayaanzhaque/instruct-nerf2nerf && ns-train in2n --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --pipeline.prompt 'Replicate the poster in the TV' --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "Ejecutar Splatfacto (T4)": {
-        "command": "ns-train splatfacto --pipeline.datamanager.masks-on-gpu True --pipeline.datamanager.images-on-gpu True --viewer.make-share-url True --logging.local-writer.max-log-size=0 --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+    "Entrenar K-Planes": {
+        "command": "pip install kplanes-nerfstudio && ns-download-data dnerf && ns-train kplanes-dynamic --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/dnerf --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "Nerfacto-big": {
-        "command": "ns-train nerfacto-big --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
+    "Ejecutar Splatfacto (T4)": {
+        "command": "ns-train splatfacto --pipeline.datamanager.masks-on-gpu True --pipeline.datamanager.images-on-gpu True --viewer.make-share-url True --logging.local-writer.max-log-size=0 --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
     "Ejecutar Instant-NGP (T4)": {
         "command": "ns-train instant-ngp --logging.local-writer.max-log-size=0 --viewer.make-share-url True --data /kaggle/temp/Cloudstudio/data/nerfstudio/poster --relative-model-dir /kaggle/working --output-dir /kaggle/working  --save-only-latest-checkpoint False --steps-per-save 2000 --logging.local-writer.stats-to-track ETA TOTAL_TRAIN_TIME CURR_TEST_PSNR",
         "local": False
     },
-    "Limpiar espacio de trabajo": {
-        "command": "rm -rf /kaggle/working/*",
-        "local": False
-    },
-    "Ejecutar Visor": {
-        "command": "ns-viewer --load-config /kaggle/working/config.yml",
-        "local": False
-    },
-    "Ayuda nerfacto": {
-        "command": "ns-help nerfacto",
-        "local": False
-    }
+    
     
 }
 
@@ -312,7 +317,7 @@ class Hypershell:
 class CloudstudioGUI:
     def __init__(self):
         self.root = ctk.CTk()
-        self.root.geometry("840x800")
+        self.root.geometry("980x750")
         self.root.title("Cloudstudio")
         ctk.set_appearance_mode("System")
         ctk.set_default_color_theme("blue")
@@ -369,9 +374,9 @@ class CloudstudioGUI:
         json_frame.pack(pady=10, padx=20, fill='x')
     
         if self._check_kaggle_json():
-            ctk.CTkLabel(json_frame, text="✔️ Archivo kaggle.json encontrado", text_color="green", font=("",20)).pack(side='left', padx=10)
+            ctk.CTkLabel(json_frame, text="✔️ Archivo kaggle.json encontrado", text_color="green", font=("",25)).pack(side='left', padx=10)
         else:
-            ctk.CTkLabel(json_frame, text="❌ Archivo kaggle.json no encontrado", text_color="red", font=("",20)).pack(side='left', padx=10)
+            ctk.CTkLabel(json_frame, text="❌ Archivo kaggle.json no encontrado", text_color="red", font=("",25)).pack(side='left', padx=10)
             ctk.CTkButton(json_frame, text="📄 Buscar kaggle.json", command=self._browse_json).pack(side='left', padx=10)
 
     def _check_kaggle_json(self):
@@ -409,7 +414,7 @@ class CloudstudioGUI:
         video_exists = os.path.exists(os.path.join(SCRIPT_DIR, 'escena.mp4'))
         status_text = "✔️ Video encontrado" if video_exists else "❌ Video no encontrado"
         status_color = "green" if video_exists else "red"
-        ctk.CTkLabel(self.video_frame, text=status_text, text_color=status_color, font=("",20)).pack(side='left', padx=10)
+        ctk.CTkLabel(self.video_frame, text=status_text, text_color=status_color, font=("",25)).pack(side='left', padx=10)
         if not video_exists:
             ctk.CTkButton(self.video_frame, text="📄 Buscar video", command=self._browse_video).pack(side='left', padx=10)
 
@@ -427,11 +432,10 @@ class CloudstudioGUI:
     def _setup_viser_section(self):
         self.viser_frame = ctk.CTkFrame(self.root)
         self.viser_frame.pack(pady=10, padx=20, fill='x')
-        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",20), command=self._open_viser,width=220, state="normal")
+        self.viser_button = ctk.CTkButton(self.viser_frame, text="Abrir Viser",font=("",25), command=self._open_viser,width=290, state="normal")
         self.viser_button.pack(side='left', padx=(0,10))
-        self.viser_label = ctk.CTkLabel(self.viser_frame, text="Enlace Viser: No disponible", font=("",20))
-        self.viser_label.pack(side='left', padx=50)
-        
+        self.viser_label = ctk.CTkLabel(self.viser_frame, text="Enlace Viser: No disponible", font=("",25))
+        self.viser_label.pack(side='left', padx=70)    
 
     def _open_viser(self):
         if self.hypershell.viser_url:
@@ -440,24 +444,32 @@ class CloudstudioGUI:
     def _setup_notebook_section(self):
         notebook_frame = ctk.CTkFrame(self.root)
         notebook_frame.pack(pady=10, padx=20, fill='x')
-        ctk.CTkButton(notebook_frame, text="Ejecutar Libreta Kaggle", font=("",20), 
-                      command=self._run_kaggle_notebook, width=220).pack(side='left', padx=(0,10))
-        self.notebook_status_label = ctk.CTkLabel(notebook_frame, text=f"Estado de la libreta: {self.notebook_status}", font=("",20))
-        self.notebook_status_label.pack(side='left', padx=50)
+        ctk.CTkButton(notebook_frame, text="Ejecutar Libreta Kaggle", font=("",25), 
+                      command=self._run_kaggle_notebook, width=290).pack(side='left', padx=(0,10))
+        self.notebook_status_label = ctk.CTkLabel(notebook_frame, text=f"Estado de la libreta: {self.notebook_status}", font=("",25))
+        self.notebook_status_label.pack(side='left', padx=70)
 
     def _setup_token_section(self):
         token_frame = ctk.CTkFrame(self.root)
-        token_frame.pack(pady=5, padx=20, fill='x')
-        ctk.CTkButton(token_frame, text="Cambiar Token", width=220, font=("",20), 
+        token_frame.pack(pady=10, padx=20, fill='x')
+        ctk.CTkButton(token_frame, text="Cambiar Token", width=290, font=("",25), 
                       command=self._change_token).pack(side='left', padx=(0,10))
-        self.token_entry = ctk.CTkEntry(token_frame, width=0, font=("",20), placeholder_text="Nuevo token")
-        self.token_entry.pack(side='left', padx=(50,0), fill='x', expand=True)
+        self.token_entry = ctk.CTkEntry(token_frame, width=0, font=("",25), placeholder_text="Nuevo token")
+        self.token_entry.pack(side='left', padx=(70,0), fill='x', expand=True)
 
         self.token_frame = ctk.CTkFrame(self.root)
-        self.token_frame.pack(pady=5, padx=20, fill='x')
-        ctk.CTkLabel(self.token_frame, text="Token:", font=("",20)).pack(side='left', padx=(85,0))
+        self.token_frame.pack(pady=10, padx=20, fill='x')
+        ctk.CTkButton(self.token_frame, text="Copiar Token", width=290, font=("",25), 
+                      command=self._copy_token_to_clipboard).pack(side='left', padx=(0,0))
+        ctk.CTkLabel(self.token_frame, text="Token:", font=("",20)).pack(side='left', padx=(10,10))
         self.token_label = ctk.CTkLabel(self.token_frame, text="", font=("",20), wraplength=0)
-        self.token_label.pack(side='right', fill='x', expand=True)
+        self.token_label.pack(side='left', fill='x')
+
+    def _copy_token_to_clipboard(self):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(self.token_label.cget("text"))
+        self.root.update()  # Keeps the clipboard content after the window is closed
+        log_to_terminal("Token copiado al portapapeles")
 
     def _setup_status_section(self):
         self.status_frame = ctk.CTkFrame(self.root)
@@ -467,30 +479,30 @@ class CloudstudioGUI:
         self.top_row = ctk.CTkFrame(self.status_frame)
         self.top_row.pack(fill='x')
         
-        self.connection_status = ctk.CTkLabel(self.top_row, text="Conexion: Desconectado", text_color="red", font=("",20))
+        self.connection_status = ctk.CTkLabel(self.top_row, text="Conexion: Desconectado", text_color="red", font=("",25))
         self.connection_status.pack(side='left', padx=10)
         
-        self.cpu_label = ctk.CTkLabel(self.top_row, text="CPU: 0%", font=("",20), width=200)
+        self.cpu_label = ctk.CTkLabel(self.top_row, text="CPU: 0%", font=("",25), width=200)
         self.cpu_label.pack(side='left', padx=10)
         
-        self.ram_label = ctk.CTkLabel(self.top_row, text="RAM: 0%", font=("",20), width=200)
+        self.ram_label = ctk.CTkLabel(self.top_row, text="RAM: 0%", font=("",25), width=200)
         self.ram_label.pack(side='left', padx=10)
         
         # Segunda fila
         self.bottom_row = ctk.CTkFrame(self.status_frame)
         self.bottom_row.pack(fill='x')
         
-        self.prepared_status = ctk.CTkLabel(self.bottom_row, text="Estado: Desconocido", text_color="red", font=("",20))
+        self.prepared_status = ctk.CTkLabel(self.bottom_row, text="Estado: Desconocido", text_color="red", font=("",25))
         self.prepared_status.pack(side='left', padx=10)
         
-        self.gpu_label = ctk.CTkLabel(self.bottom_row, text="GPU: 0%", font=("",20), width=200)
+        self.gpu_label = ctk.CTkLabel(self.bottom_row, text="GPU: 0%", font=("",25), width=200)
         self.gpu_label.pack(side='left', padx=10)
 
-        self.gpu_memory_label = ctk.CTkLabel(self.bottom_row, text="GPU Mem: 0 MB", font=("",20), width=250)
+        self.gpu_memory_label = ctk.CTkLabel(self.bottom_row, text="GPU Mem: 0 MB", font=("",25), width=250)
         self.gpu_memory_label.pack(side='left', padx=10)
 
     def _setup_terminal(self):
-        self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=250, font=("", 25), state="disabled")
+        self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=200, font=("", 25), state="disabled")
         self.terminal_text.pack(pady=10, padx=20, fill='both', expand=True)
         self.root.after(100, self._update_terminal)
 
@@ -533,21 +545,21 @@ class CloudstudioGUI:
         command_menu = ctk.CTkOptionMenu(commands_frame, variable=self.command_var, 
                                          values=list(PREDEFINED_COMMANDS.keys()),
                                          command=self._on_command_select,
-                                         font=("", 25),
+                                         font=("", 27),
                                          width=350,
-                                         dropdown_font=("", 25),
+                                         dropdown_font=("", 27),
                                          dropdown_hover_color="#2980b9",
                                          button_color="#3498db",
                                          button_hover_color="#2980b9")
         command_menu.pack(side='left', padx=0, pady=0)
 
-        execute_button = ctk.CTkButton(commands_frame, text="▶️ Ejecutar", font=("", 25),
+        execute_button = ctk.CTkButton(commands_frame, text="▶️ Ejecutar", font=("", 27),
                                        command=self._execute_selected_command)
         execute_button.pack(side='left', padx=10)
 
         # Botón de entrenamiento
-        train_button = ctk.CTkButton(commands_frame, text="🚀 Entrenar", font=("", 25),
-                                     command=lambda: self._execute_predefined_command(PREDEFINED_COMMANDS["Entrenamiento"]))
+        train_button = ctk.CTkButton(commands_frame, text="🚀 Entrenar", font=("", 27),
+                                     command=lambda: self._execute_predefined_command(PREDEFINED_COMMANDS["Entrenamiento estandar"]))
         train_button.pack(side='right', padx=0)
 
     def _on_command_select(self, command_name):
