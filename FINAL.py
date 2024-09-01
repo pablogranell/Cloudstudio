@@ -23,7 +23,7 @@ else:
     KaggleApi = None
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TERMINAL_QUEUE = queue.Queue()
-UPDATE_INTERVAL = 1
+UPDATE_INTERVAL = 0.7
 UPDATE_INTERVAL_LONG = 10
 TIMEOUT = 15
 PREDEFINED_COMMANDS = {
@@ -356,7 +356,7 @@ class CloudstudioGUI:
         self._check_notebook_status()
         threading.Thread(target=self.hypershell.run, daemon=True).start()
         threading.Thread(target=self._update_status, daemon=True).start()
-        threading.Thread(target=self._check_notebook_status, daemon=True).start()
+        #threading.Thread(target=self._check_notebook_status, daemon=True).start()
 
     def _setup_ui(self):
         self._setup_json_section()
@@ -504,7 +504,7 @@ class CloudstudioGUI:
     def _setup_terminal(self):
         self.terminal_text = ctk.CTkTextbox(self.root, width=600, height=200, font=("", 25), state="disabled")
         self.terminal_text.pack(pady=10, padx=20, fill='both', expand=True)
-        self.root.after(100, self._update_terminal)
+        #self.root.after(100, self._update_terminal)
 
     def _setup_input_field(self):
         self.input_frame = ctk.CTkFrame(self.root)
@@ -609,7 +609,7 @@ class CloudstudioGUI:
                 self.terminal_text.see("end")
             self.terminal_text.configure(state="disabled")
 
-        self.root.after(UPDATE_INTERVAL, self._update_terminal)
+        #self.root.after(UPDATE_INTERVAL, self._update_terminal)
 
     def _clean_terminal_output(self, text):
         
@@ -701,6 +701,7 @@ class CloudstudioGUI:
 
     def _update_status(self):
         while True:
+            self._update_terminal()
             self._update_connection_status()
             self._update_token_and_viser()
             self._check_notebook_status()
