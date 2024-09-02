@@ -23,7 +23,7 @@ else:
     KaggleApi = None
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TERMINAL_QUEUE = queue.Queue()
-UPDATE_INTERVAL = 0.7
+UPDATE_INTERVAL = 1
 UPDATE_INTERVAL_LONG = 10
 TIMEOUT = 15
 PREDEFINED_COMMANDS = {
@@ -728,10 +728,11 @@ class CloudstudioGUI:
         prepared_states = {(False, False): ("Estado: Desconocido", "red"),(True, True): ("Estado: Ejecutando", "orange"),(True, False): ("Estado: Preparado", "green"), (False, True): ("Estado: En cola", "orange")}
         status1, color1 = prepared_states[(self.hypershell.connected, self.command_running)]
         self.prepared_status.configure(text=status1, text_color=color1)
-        self.cpu_label.configure(text=f"CPU: {self.hypershell.metrics.get('cpu', 0):.1f}%")
-        self.ram_label.configure(text=f"RAM: {self.hypershell.metrics.get('memory', 0):.1f}%")
-        self.gpu_label.configure(text=f"GPU: {self.hypershell.metrics.get('gpu_load', 0):.1f}%")
-        self.gpu_memory_label.configure(text=f"GPU Mem: {self.hypershell.metrics.get('gpu_memory', 0):.1f} MB")
+        metrics = self.hypershell.metrics
+        self.cpu_label.configure(text=f"CPU: {metrics.get('cpu', 0):.1f}%")
+        self.ram_label.configure(text=f"RAM: {metrics.get('memory', 0):.1f}%")
+        self.gpu_label.configure(text=f"GPU: {metrics.get('gpu_load', 0):.1f}%")
+        self.gpu_memory_label.configure(text=f"GPU Mem: {metrics.get('gpu_memory', 0):.1f} MB")
         
     def _update_token_and_viser(self):
         if not self.hypershell.checkURL:
